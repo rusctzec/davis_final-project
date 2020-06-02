@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useContext, createContext } from "react";
 
 const InputContext = createContext();
 
+// provider that allows components to easily query what keys are currently being pressed
 const InputProvider = (props) => {
 
 
@@ -30,4 +31,4 @@ const useInputContext = () => {
   return useContext(InputContext);
 }
 
-export {InputProvider, useInputContext}
+export {InputProvider, InputContext, useInputContext}

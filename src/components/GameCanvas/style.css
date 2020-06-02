@@ -2,7 +2,12 @@ body {
   background-color: red;
 }
 
+div {
+  background-color: orange;
+}
+
 canvas {
+  position: fixed;
   image-rendering: -moz-crisp-edges;
   image-rendering: -webkit-optimize-contrast;
   image-rendering: -optimize-contrast;
