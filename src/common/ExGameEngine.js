@@ -4,7 +4,6 @@ import Player from './Player';
 export default class ExGameEngine extends GameEngine {
   constructor(options) {
     super(options);
-    console.log("ENGINE OPTIONS", options);
     this.physicsEngine = new SimplePhysicsEngine({gameEngine: this});
   }
 
@@ -20,10 +19,10 @@ export default class ExGameEngine extends GameEngine {
     });
 
     if (player) {
-      if (inputData.input == 'up') {
+      if (inputData.input === 'up') {
         player.position.x += 10;
         console.log(player.position.x)
-      } else if (inputData.input == 'down') {
+      } else if (inputData.input === 'down') {
         player.position.x -= 10;
         console.log(player.position.x)
       }
@@ -43,12 +42,12 @@ export default class ExGameEngine extends GameEngine {
       }
     // fill by 2d array
     } else if (data) {
-      let lenX = data.length; if (lenX == 0) return;
+      let lenX = data.length; if (lenX === 0) return;
       let lenY = data[0].length;
       for (let i=0; i < lenX && i < this.worldWidth; i++) {
         for (let j=0; j < lenY && j < this.worldHeight; j++) {
-          let val = data[i][j]; if (val == 0 || i < 0 || j < 0) continue;
-          if (val == -1) this.tileMap[x+i][y+j] = 0;
+          let val = data[i][j]; if (val === 0 || i < 0 || j < 0) continue;
+          if (val === -1) this.tileMap[x+i][y+j] = 0;
           else this.tileMap[x+i][y+j] = 1;
         }
       }

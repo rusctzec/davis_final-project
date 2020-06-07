@@ -10,13 +10,6 @@ window.PIXI = PIXI; // for testing purposes;
 const TOOLS = Object.freeze({"brush":0, "eraser": 1});
 const STATE = Object.freeze({"brush":0, "eraser": 1, "panning": 2});
 
-function randomColor() {
-  return (Math.floor(Math.random()*256)*(2**16) +
-  Math.floor(Math.random()*256)*(2**8) +
-  Math.floor(Math.random()*256));
-}
-
-
 class GameCanvas extends React.Component {
 
   static contextType = InputContext
@@ -132,9 +125,9 @@ class GameCanvas extends React.Component {
       // changing brush or eraser size using number keys
       else if (/(Numpad|Digit)\d/.test(e.code)) {
         let size = parseInt(e.code.match(/\d/)[0]);
-        if (size == 0) size = 10;
-        if (this.settings.tool == TOOLS.brush) this.settings.brushSize = size;
-        else if (this.settings.tool == TOOLS.eraser) this.settings.eraserSize = size;
+        if (size === 0) size = 10;
+        if (this.settings.tool === TOOLS.brush) this.settings.brushSize = size;
+        else if (this.settings.tool === TOOLS.eraser) this.settings.eraserSize = size;
         console.log(this.settings.brushSize, this.settings.eraserSize);
       }
     });
@@ -169,12 +162,12 @@ class GameCanvas extends React.Component {
   // handle user's brush strokes
   makeStroke(x, y) {
     this.strokeCount++;
-    const size = (this.settings.tool == TOOLS.eraser) ? this.settings.eraserSize : this.settings.brushSize;
-    (this.settings.tool == TOOLS.eraser) ? this.graphics.beginFill(0xffffff) : this.graphics.beginFill(this.settings.color);
+    const size = (this.settings.tool === TOOLS.eraser) ? this.settings.eraserSize : this.settings.brushSize;
+    (this.settings.tool === TOOLS.eraser) ? this.graphics.beginFill(0xffffff) : this.graphics.beginFill(this.settings.color);
     x = Math.round(x - size/2);
     y = Math.round(y - size/2);
     this.graphics.drawRect(x, y, size, size);
-    clientEngine.sendCanvasUpdate({x, y, size: size, fill: (this.settings.tool == TOOLS.eraser ? -1 : 1)});
+    clientEngine.sendCanvasUpdate({x, y, size: size, fill: (this.settings.tool === TOOLS.eraser ? -1 : 1)});
   }
 
   // handle any side effects of state changes like updating the mouse cursor

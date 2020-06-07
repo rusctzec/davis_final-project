@@ -2,9 +2,6 @@ import { ServerEngine } from 'lance-gg';
 
 
 export default class ExServerEngine extends ServerEngine {
-  constructor(io, gameEngine, inputOptions) {
-    super(io, gameEngine, inputOptions);
-  }
 
   onPlayerConnected(socket) {
     super.onPlayerConnected(socket);
@@ -17,7 +14,6 @@ export default class ExServerEngine extends ServerEngine {
       this.gameEngine.updateTileMap(update);
       this.io.sockets.emit("canvasUpdate", update);
     });
-
   }
 
   onPlayerDisconnected(socketId, playerId) {
@@ -27,8 +23,5 @@ export default class ExServerEngine extends ServerEngine {
     playerObjects.forEach(obj => {
       this.gameEngine.removeObjectFromWorld(obj.id);
     });
-
   }
-
-
 }

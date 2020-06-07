@@ -1,24 +1,6 @@
 import { DynamicObject, Renderer } from 'lance-gg';
 
 export default class Player extends DynamicObject {
-  constructor(gameEngine, options, props) {
-    super(gameEngine, options, props);
-  }
-
-/*
-  static get bending() {
-    return {
-      position: { percent: 0.0 },
-    }
-  }
-*/
-
-/*
-  static get netScheme() {
-    return Object.assign({}, super.netScheme);
-  }
-*/
-
 
   syncTo(other) {
     super.syncTo(other);

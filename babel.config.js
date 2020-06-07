@@ -1,8 +1,9 @@
-{
-  "presets": [
-    "@babel/preset-env"
-  ],
-  "plugins": [
+module.exports = function(api) {
+  api.cache(true);
+
+  const presets = ["@babel/preset-env"];
+
+  const plugins = [
     "@babel/plugin-syntax-dynamic-import",
     "@babel/plugin-syntax-import-meta",
     "@babel/plugin-proposal-class-properties",
@@ -23,11 +24,13 @@
     [
       "@babel/plugin-proposal-pipeline-operator",
       {
-        "proposal": "minimal"
+        "proposal": "smart"
       }
     ],
     "@babel/plugin-proposal-nullish-coalescing-operator",
     "@babel/plugin-proposal-do-expressions",
     "@babel/plugin-proposal-function-bind"
-  ]
-}
+  ];
+
+  return { presets, plugins };
+};

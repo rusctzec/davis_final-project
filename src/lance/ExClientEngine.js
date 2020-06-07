@@ -37,11 +37,11 @@ export default class ExClientEngine extends ClientEngine {
   // 2. A two-dimensional array describing the affected pixels relative to that position
   sendCanvasUpdate(update) {
     console.log("Sent", update);
+    this.gameEngine.updateTileMap(update);
     this.socket.emit("canvasUpdate", update);
   }
 
   receiveCanvasUpdate(update) {
-    let PIXI = this.renderer.PIXI
     console.log("Received", update);
 
     // fill by 2d array
@@ -59,7 +59,7 @@ export default class ExClientEngine extends ClientEngine {
           // set tilemap right from here to avoid making the same loop again
           this.gameEngine.tileMap[i+x][j+y] = fill;
 
-          if (fillColor != this.canvas.inboundGraphics.fill.color || this.canvas.inboundGraphics.strokeCount > 1500) {
+          if (fillColor !== this.canvas.inboundGraphics.fill.color || this.canvas.inboundGraphics.strokeCount > 1500) {
             this.canvas.renderToTexture();
             this.canvas.inboundGraphics.beginFill(fillColor);
           }
@@ -74,7 +74,7 @@ export default class ExClientEngine extends ClientEngine {
       let fillColor = update.fill === -1 ? 0xffffff : this.canvas.settings.color;
       this.gameEngine.updateTileMap(update);
       // if color changed or stroke limit exceeded
-      if (fillColor != this.canvas.inboundGraphics.fill.color || this.canvas.inboundGraphics.strokeCount > 1500) {
+      if (fillColor !== this.canvas.inboundGraphics.fill.color || this.canvas.inboundGraphics.strokeCount > 1500) {
         this.canvas.renderToTexture();
       }
       this.canvas.inboundGraphics.beginFill(fillColor);

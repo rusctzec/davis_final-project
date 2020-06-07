@@ -225,4 +225,9 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Other
+build
+dist-server
+.vscode
+
 # End of https://www.gitignore.io/api/vim,node,react,linux,macos,windows,visualstudiocode

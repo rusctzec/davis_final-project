@@ -1,12 +1,15 @@
 import express from "express";
-import socketIO from "socket.io";
+import socketIO from "socket.io"
+import path from "path";
 
 // Game Server
 import ExServerEngine from "./lance/ExServerEngine";
 import ExGameEngine from "../src/common/ExGameEngine";
 
-const PORT = 3001;
+const PORT = 3001 || process.env.PORT;
 const app = express();
+
+app.use(express.static(path.join(__dirname, "../build")));
 
 const requestHandler = app.listen({ port: PORT }, () =>
   console.log(`Listening on ${PORT}`)
