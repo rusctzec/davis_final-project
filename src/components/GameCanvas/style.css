@@ -1,5 +1,5 @@
 body {
-  background-color: red;
+  background-color: lightgray;
 }
 
 div {
@@ -15,5 +15,5 @@ canvas {
   image-rendering: pixelated;
 
   margin: 0 auto;
-  background-color: lightgreen;
+  background-color: white;
 }
