@@ -2,32 +2,33 @@ import React from 'react';
 import * as PIXI from 'pixi.js';
 import './style.css';
 import {InputContext} from '../../utils/InputStore';
+import ToolBox from '../ToolBox';
 import clientEngine from '../../lance';
 
 window.PIXI = PIXI; // for testing purposes;
 
 // tools enum
-const TOOLS = Object.freeze({"brush":0, "eraser": 1});
-const STATE = Object.freeze({"brush":0, "eraser": 1, "panning": 2});
+const TOOLS = Object.freeze({"brush":0, "eraser": 1, "panning": 2});
 
 class GameCanvas extends React.Component {
 
   static contextType = InputContext
 
   constructor(props) {
-    console.log(clientEngine);
     super(props);
+    this.state = {
+      brushSize: 2,
+      color: 0x000000,
+      eraserSize: 7,
+      gameMode: false,
+      tool: TOOLS.brush,
+      active: TOOLS.brush,
+    };
+
     this.canvasRef = React.createRef();
     this.strokeCount = 0;
     this.canvasSize = {x: 500, y: 500};
     this.scale = 1.0;
-    this.settings = {
-      brushSize: 3,
-      color: 0x000000,
-      eraserSize: 5,
-      tool: TOOLS.brush,
-      state: TOOLS.brush,
-    };
     // to keep track of previous stroke location for calculations
     this.previousPosition = [undefined, undefined];
     this.previousPagePosition = [undefined, undefined];
@@ -37,42 +38,77 @@ class GameCanvas extends React.Component {
   render() {
     return (
       <div>
-        <canvas ref={this.canvasRef}/>
+        <canvas ref={this.canvasRef} width={this.canvasSize.x} height={this.canvasSize.y} />
+        <ToolBox
+          state={this.state}
+          tools={TOOLS}
+          dispatch={(newTool) => this.changeActive(newTool, true)}
+          onChange={newState => this.setState({...this.state, ...newState})}
+          toggleGameMode={(val) => this.toggleGameMode(val)}
+        />
       </div>
     );
   }
 
-  canvasZoom(factor) {
+  canvasZoom(factor, scalePoint) {
     let canvas = this.canvasRef.current;
+    if (this.state.gameMode) {
+      canvas.scale = factor; return;
+    }
+    let point = scalePoint || {x: (canvas.targetScale*this.canvasSize.x)/2, y: (canvas.targetScale*this.canvasSize.y)/2}
+    if (clientEngine.gameMode && clientEngine.gameEngine.player) {console.log(factor); canvas.scale = factor; return;};
 
-    let previousScale = this.scale;
-    this.scale = factor;
+    let previousScale = canvas.targetScale;
+    let newScale = factor;
 
-    this.scale = Math.min(Math.max(this.scale, 0.1),10);
-    let scaleChange = this.scale-previousScale;
+    newScale = Math.min(Math.max(newScale, 0.1),10);
+    let scaleChange = newScale-previousScale;
 
-    let canvasX = parseInt(canvas.style.left.replace("px",""));
-    let canvasY = parseInt(canvas.style.top.replace("px",""));
+    let canvasX = canvas.targetX;
+    let canvasY = canvas.targetY;
 
-    canvasX += (scaleChange*this.canvasSize.x/2 * -1);
-    canvasY += (scaleChange*this.canvasSize.y/2 * -1);
+    canvasX += (scaleChange*point.x * -1);
+    canvasY += (scaleChange*point.y * -1);
 
-    canvas.style.width = this.canvasSize.x * this.scale + "px";
-    canvas.style.height = this.canvasSize.y * this.scale + "px";
-    canvas.style.left = canvasX + "px";
-    canvas.style.top = canvasY + "px";
+    canvas.scale = newScale;
+    canvas.x = canvasX;
+    canvas.y = canvasY;
   }
 
   componentDidMount() {
-    // center canvas on screen
-    this.canvasRef.current.style.top = `${window.innerHeight/2 - this.canvasSize.y/2}px`;
-    this.canvasRef.current.style.left = `${window.innerWidth/2 - this.canvasSize.x/2}px`;
+    let canvas = this.canvasRef.current;
+    // setup shorthand for manipulating canvas css position/scale (real value, target value, property that sets target value but returns real value)
+    Object.defineProperties(canvas, {
+      _x: {
+        set: function(val) { this.style.left = val+"px"; },
+        get: function() { return parseInt(this.style.left.replace("px","")); }
+      },
+      _y: {
+        set: function(val) { this.style.top = val+"px"; },
+        get: function() { return parseInt(this.style.top.replace("px","")); }
+      },
+      _scale: {
+        set: function(val) {this.style.width = this.width * val + "px"; this.style.height = this.height * val + "px" },
+        get: function() { return parseInt(this.style.width.replace("px","")) / this.width }
+      },
+      x: {
+        set: function(val) { this.targetX = val; },
+        get: function() { return this._x }
+      },
+      y: {
+        set: function(val) { this.targetY = val },
+        get: function() { return this._y }
+      },
+      scale: {
+        set: function(val) { this.targetScale = val },
+        get: function() { return this._scale }
+      },
+      targetX: {value: 0, writable:true}, targetY: {value: 0, writable:true}, targetScale: {value: 1, writable:true}
+    });
+    canvas._x = canvas.targetX; canvas._y = canvas.targetY; canvas._scale = canvas.targetScale;
 
-    // fit canvas scale to screen size
-    let initialScale = Math.min(window.innerWidth/this.canvasSize.x, window.innerHeight/this.canvasSize.y);
-    initialScale *= 0.9;
-    this.canvasZoom(initialScale);
-
+    // center canvas
+    this.resetView();
 
     this.keys = this.context.current.keys;
     this.app = new PIXI.Application({
@@ -85,8 +121,6 @@ class GameCanvas extends React.Component {
     this.graphics = new PIXI.Graphics() // main graphics object that gets drawn to by the user
     this.inboundGraphics = new PIXI.Graphics() // secondary graphics object for drawing strokes coming in over the network
     this.inboundGraphics.strokeCount = 0;
-    clientEngine.canvas = this;
-    clientEngine.start(this.app, this.canvasSize); // start the game engine (and pass a reference to the pixi application and world size info)
 
     // - if a graphics object gets drawn to too much it eventually stops working entirely
     // so set up a rendertexture which will store the visual state of things in the long term
@@ -106,85 +140,120 @@ class GameCanvas extends React.Component {
     this.container.addChild(this.inboundGraphics);
     this.container.addChild(this.graphics);
 
+    clientEngine.canvas = this;
+    clientEngine.start(this.app, canvas, this); // start the game engine (and pass a reference to the pixi application and canvas)
+
     // keybindings
     window.addEventListener('keydown', e => {
       if (e.code === "Space") {
-        this.changeState(STATE.panning);
+        this.changeActive(TOOLS.panning);
+      }
+      else if (e.code == "KeyA") {
+        this.resetView();
       }
       // swapping tools (clears graphics object and renders to texture every time color needs to change otherwise it doesn't work right)
       else if (e.code === "KeyE") {
         this.renderToTexture();
-        this.settings.tool = (this.settings.tool === TOOLS.brush ? TOOLS.eraser : TOOLS.brush);
-        this.changeState(this.settings.tool);
+        let newTool = (this.state.tool === TOOLS.eraser ? TOOLS.brush : TOOLS.eraser);
+        this.changeActive(newTool, true);
       }
       else if (e.code === "KeyB") {
         this.renderToTexture();
-        this.settings.tool = TOOLS.brush;
-        this.changeState(this.settings.tool);
+        this.changeActive(TOOLS.brush, true);
+      }
+      else if (e.code == "KeyG") {
+        this.toggleGameMode();
       }
       // changing brush or eraser size using number keys
       else if (/(Numpad|Digit)\d/.test(e.code)) {
         let size = parseInt(e.code.match(/\d/)[0]);
         if (size === 0) size = 10;
-        if (this.settings.tool === TOOLS.brush) this.settings.brushSize = size;
-        else if (this.settings.tool === TOOLS.eraser) this.settings.eraserSize = size;
-        console.log(this.settings.brushSize, this.settings.eraserSize);
+        if (this.state.tool === TOOLS.brush) this.setState({...this.state, brushSize: size});
+        else if (this.state.tool === TOOLS.eraser) this.setState({...this.state, eraserSize: size});
+        console.log(this.state.brushSize, this.state.eraserSize);
       }
     });
 
     window.addEventListener('keyup', e => {
       if (e.code === "Space") {
-        this.changeState(this.settings.tool);
+        this.changeActive(this.state.tool);
       }
     });
 
     window.addEventListener('wheel', e => {
-      let newScale = this.scale + 0.1*this.scale*(e.deltaY * -0.01);
-      this.canvasZoom(newScale);
+      let relX = (e.pageX - canvas.x) / canvas.scale;
+      let relY = (e.pageY - canvas.y) / canvas.scale;
+
+      let currentScale = canvas.targetScale;
+      let newScale = currentScale + 0.1*currentScale*(Math.sign(e.deltaY) * -1);
+      this.canvasZoom(newScale, {x: relX, y: relY});
     });
 
     window.addEventListener('mousemove', this.handleMouseMove.bind(this));
     window.addEventListener('click', this.handleMouseMove.bind(this));
 
     window.addEventListener('mousedown', e => {
-      if (this.settings.state === STATE.panning) {
+      if (this.state.active === TOOLS.panning) {
         document.documentElement.style.cursor = "grabbing";
       }
     });
 
     window.addEventListener('mouseup', e => {
-      if (this.settings.state === STATE.panning) {
+      if (this.state.active === TOOLS.panning) {
         document.documentElement.style.cursor = "grab";
       }
     });
   }
 
+  toggleGameMode(value) {
+    let newValue =  (value == null ? !this.state.gameMode : value);
+    if (newValue == this.state.gameMode) return false;
+    if (newValue) {this.canvasRef.current.scale = 7; clientEngine.socket.emit('requestCreation'); }
+    else {this.resetView(); clientEngine.socket.emit('requestDeath'); }
+    this.setState({...this.state, gameMode: newValue});
+    return true;
+  }
+
+  resetView() {
+    let canvas = this.canvasRef.current;
+
+
+    // fit canvas scale to screen size
+    let initialScale = Math.min(window.innerWidth/this.canvasSize.x, window.innerHeight/this.canvasSize.y);
+    initialScale *= 0.9;
+    canvas.scale = initialScale;
+
+    // center canvas on screen, providing initial values
+    canvas.x = window.innerWidth/2 - (this.canvasSize.x*canvas.targetScale)/2;
+    canvas.y = window.innerHeight/2 - (this.canvasSize.y*canvas.targetScale)/2;
+
+  }
   // handle user's brush strokes
   makeStroke(x, y) {
     this.strokeCount++;
-    const size = (this.settings.tool === TOOLS.eraser) ? this.settings.eraserSize : this.settings.brushSize;
-    (this.settings.tool === TOOLS.eraser) ? this.graphics.beginFill(0xffffff) : this.graphics.beginFill(this.settings.color);
+    const size = (this.state.tool === TOOLS.eraser) ? this.state.eraserSize : this.state.brushSize;
+    (this.state.tool === TOOLS.eraser) ? this.graphics.beginFill(0xffffff) : this.graphics.beginFill(this.state.color);
     x = Math.round(x - size/2);
     y = Math.round(y - size/2);
     this.graphics.drawRect(x, y, size, size);
-    clientEngine.sendCanvasUpdate({x, y, size: size, fill: (this.settings.tool === TOOLS.eraser ? -1 : 1)});
+    clientEngine.sendCanvasUpdate({x, y, size: size, fill: (this.state.tool === TOOLS.eraser ? -1 : 1)});
   }
 
   // handle any side effects of state changes like updating the mouse cursor
-  changeState(newState) {
-    if (newState === this.settings.state) return;
+  changeActive(newTool, deep=false) {
+    if (newTool === this.state.active) return;
 
-    console.trace("STATE CHANGED FROM", this.settings.state, "TO", newState)
-    if (this.settings.state) {
+    console.trace("STATE CHANGED FROM", this.state.active, "TO", newTool)
+    if (this.state.active) {
       document.documentElement.style.cursor = "auto";
     }
 
-    if (newState === STATE.panning) {
+    if (newTool === TOOLS.panning) {
       document.documentElement.style.cursor = "grab";
     }
 
 
-    this.settings.state = newState;
+    this.setState({...this.state, active: newTool, tool: deep?newTool:this.state.tool})
   }
 
   // the function for rendering the graphics object to a rendertexture and then clearing it
@@ -204,12 +273,12 @@ class GameCanvas extends React.Component {
 
   handleMouseMove(e) {
     let canvas = this.canvasRef.current;
-    let canvasX = parseInt(canvas.style.left.replace("px",""));
-    let canvasY = parseInt(canvas.style.top.replace("px",""));
+    let canvasX = canvas.x;
+    let canvasY = canvas.y;
 
     // calculate stroke point relative to canvas
-    let relX = (e.pageX - canvasX) / this.scale;
-    let relY = (e.pageY - canvasY) / this.scale;
+    let relX = (e.pageX - canvasX) / canvas.scale;
+    let relY = (e.pageY - canvasY) / canvas.scale;
 
     const [x,y] = this.previousPosition;
     if (e.buttons & 1) this.previousPosition = [relX, relY];
@@ -219,18 +288,18 @@ class GameCanvas extends React.Component {
     if (e.buttons & 1) this.previousPagePosition = [e.pageX, e.pageY];
     else this.previousPagePosition = [undefined, undefined];
 
-    switch(this.settings.state) {
-      case STATE.brush:
+    switch(this.state.active) {
+      case TOOLS.brush:
         brush.bind(this)(false);
         break;
-      case STATE.eraser:
+      case TOOLS.eraser:
         brush.bind(this)(true);
         break;
-      case STATE.panning:
+      case TOOLS.panning:
         panning.bind(this)();
         break;
       default:
-        this.changeState(this.settings.tool);
+        this.changeActive(this.state.tool);
     }
 
     function brush(eraseMode) {
@@ -240,7 +309,7 @@ class GameCanvas extends React.Component {
         this.renderToTexture();
       }
 
-        //this.settings.color = randomColor();
+        //this.state.color = randomColor();
 
       // check if LMB is down (bitwise flag in MouseEvent.buttons)
       if (e.buttons & 1 || e.type === "click") {
@@ -275,6 +344,8 @@ class GameCanvas extends React.Component {
           canvasX += e.pageX - prevPageX;
           console.log("after", canvasX)
           canvasY += e.pageY - prevPageY;
+          canvas.x = canvas._x = canvasX;
+          canvas.y = canvas._y = canvasY;
         }
         document.documentElement.style.cursor = "grabbing";
       } else {
@@ -286,13 +357,11 @@ class GameCanvas extends React.Component {
 
       if (!this.keys.Space) {
         console.log("STOP PANNING");
-        this.changeState(this.settings.tool);
+        this.changeActive(this.state.tool);
       }
 
     }
 
-    canvas.style.left = canvasX + "px";
-    canvas.style.top = canvasY + "px";
   }
 }
 

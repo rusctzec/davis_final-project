@@ -1,0 +1,13 @@
+.toolBox {
+  position: fixed;
+  display: flex;
+  flex-flow: column nowrap;
+  right: 20px;
+  top: 20px;
+  overflow-x: visible;
+  width: 50px;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}

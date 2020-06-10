@@ -2,10 +2,6 @@ body {
   background-color: lightgray;
 }
 
-div {
-  background-color: orange;
-}
-
 canvas {
   position: fixed;
   image-rendering: -moz-crisp-edges;

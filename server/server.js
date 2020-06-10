@@ -6,7 +6,7 @@ import path from "path";
 import ExServerEngine from "./lance/ExServerEngine";
 import ExGameEngine from "../src/common/ExGameEngine";
 
-const PORT = 3001 || process.env.PORT;
+const PORT = process.env.PORT || 3001;
 const app = express();
 
 app.use(express.static(path.join(__dirname, "../build")));

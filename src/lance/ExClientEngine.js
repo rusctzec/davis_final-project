@@ -5,21 +5,30 @@ export default class ExClientEngine extends ClientEngine {
   constructor(gameEngine, options) {
     super(gameEngine, options, ExRenderer);
 
+
     this.controls = new KeyboardControls(this);
     this.controls.bindKey("up", "up", { repeat: true });
     this.controls.bindKey("down", "down", { repeat: true });
+    this.controls.bindKey("left", "left", { repeat: true });
+    this.controls.bindKey("right", "right", { repeat: true });
   }
 
-  start(pixiApp, canvasSize) {
-    if (pixiApp) {
+  start(pixiApp, canvas, gameCanvas) {
       this.renderer.app = pixiApp;
       this.renderer.stage = pixiApp.stage;
-    }
-    if (canvasSize) {
-      this.gameEngine.worldWidth = canvasSize.x;
-      this.gameEngine.worldHeight = canvasSize.y;
-    }
+      this.renderer.canvas = canvas;
+      this.renderer.gameCanvas = gameCanvas;
+      this.gameCanvas = gameCanvas;
 
+      this.gameEngine.clientEngine = this;
+      this.gameEngine.worldWidth = canvas.width;
+      this.gameEngine.worldHeight = canvas.height;
+
+
+      Object.defineProperty(this, "gameMode", {
+        set: function(val) {this.gameCanvas.toggleGameMode(val);},
+        get: function() {return this.gameCanvas.state.gameMode}
+      });
 
     super.start();
     console.log("ClientEngine started");
@@ -28,7 +37,8 @@ export default class ExClientEngine extends ClientEngine {
 
   connect() {
     return super.connect().then(() => {
-      this.socket.on("canvasUpdate", update => {this.receiveCanvasUpdate(update)});
+      this.socket.on("canvasUpdate", update => {
+        this.receiveCanvasUpdate(update)});
     });
   }
 
@@ -36,25 +46,23 @@ export default class ExClientEngine extends ClientEngine {
   // 1. The x and y position of the update
   // 2. A two-dimensional array describing the affected pixels relative to that position
   sendCanvasUpdate(update) {
-    console.log("Sent", update);
     this.gameEngine.updateTileMap(update);
     this.socket.emit("canvasUpdate", update);
   }
 
   receiveCanvasUpdate(update) {
-    console.log("Received", update);
-
     // fill by 2d array
+    this.renderer.handleStroke(update);
     if (update.data) {
       let {data, x, y} = update;
       let lenX = data.length; if (lenX === 0) return;
       let lenY = data[0].length;
-      this.canvas.inboundGraphics.beginFill(this.canvas.settings.color);
+      this.canvas.inboundGraphics.beginFill(this.canvas.state.color);
       for (let i=0; i<lenX && i+x < this.gameEngine.worldWidth; i++) {
         for (let j=0; j<lenY && j+y < this.gameEngine.worldHeight; j++) {
           let val = data[i][j];
           if (val === 0 || i < 0 || j < 0) continue;
-          let fillColor = val === -1 ? 0xffffff : this.canvas.settings.color;
+          let fillColor = val === -1 ? 0xffffff : this.canvas.state.color;
           let fill = val === -1 ? 0 : 1;
           // set tilemap right from here to avoid making the same loop again
           this.gameEngine.tileMap[i+x][j+y] = fill;
@@ -71,7 +79,7 @@ export default class ExClientEngine extends ClientEngine {
     // fill by stroke rect
     else {
       this.canvas.inboundGraphics.strokeCount++;
-      let fillColor = update.fill === -1 ? 0xffffff : this.canvas.settings.color;
+      let fillColor = update.fill === -1 ? 0xffffff : this.canvas.state.color;
       this.gameEngine.updateTileMap(update);
       // if color changed or stroke limit exceeded
       if (fillColor !== this.canvas.inboundGraphics.fill.color || this.canvas.inboundGraphics.strokeCount > 1500) {
