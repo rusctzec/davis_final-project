@@ -229,5 +229,7 @@ $RECYCLE.BIN/
 build
 dist-server
 .vscode
+*.trace
+public/assets/images/rooms/*
 
 # End of https://www.gitignore.io/api/vim,node,react,linux,macos,windows,visualstudiocode

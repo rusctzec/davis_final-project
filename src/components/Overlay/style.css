@@ -1,0 +1,29 @@
+
+.loadingOverlay {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  background-color: grey;
+  color: white;
+  width: 100vw;
+  height: 100vh;
+  transition: opacity 0.5s;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.loadingOverlay > div {
+  text-align: center;
+  margin: 0 auto;
+  margin-top: 40;
+  font-size: 5vw;
+  animation: 1s cubic-bezier(0.19, 1, 0.22, 1) 0.2s 1 normal both running text-appear;
+}
+
+.loadingOverlay > div > * {
+  margin: 10px;
+}
+
+@keyframes text-appear {
+  0% {margin-top: 100vh}
+  100% {margin-top: 40vh}
+}

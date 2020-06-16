@@ -1,5 +1,6 @@
 import { TwoVector, DynamicObject, BaseTypes, Renderer } from 'lance-gg';
 import SpawnEmitterConfig from './SpawnEmitter';
+import ExplosionEmitterConfig from './ExplosionEmitter';
 let PixiParticles;
 
 export default class PlayerCharacter extends DynamicObject {
@@ -49,6 +50,11 @@ export default class PlayerCharacter extends DynamicObject {
       this.spawnEmitter.spawnPos.y = this.sprite.position.y;
       this.spawnEmitter.autoUpdate = true;
 
+      this.explosionEmitter = new PixiParticles.Emitter(
+        this.sprite,
+        [PIXI.Loader.shared.resources.triangle.texture],
+        ExplosionEmitterConfig
+      );
     }
   }
 
@@ -56,14 +62,19 @@ export default class PlayerCharacter extends DynamicObject {
     console.log("Player removed from world")
     if (Renderer) {
       let renderer = Renderer.getInstance();
-      this.sprite.destroy();
-      this.spawnEmitter.destroy();
       renderer.sounds.playerDestroyed.play();
       if (gameEngine.playerId == this.playerId) {
         gameEngine.player = null;
         renderer.gameCanvas.resetView();
         this.gameEngine.clientEngine.gameMode = false;
       }
+      renderer.cameraShake += 10;
+      this.sprite.clear();
+      this.spawnEmitter.destroy();
+      this.explosionEmitter.playOnceAndDestroy();
+      this.gameEngine.timer.add(Math.round(this.explosionEmitter.maxLifetime*60), ()=>{
+          this.sprite.destroy()
+      }, this)
     }
   }
 

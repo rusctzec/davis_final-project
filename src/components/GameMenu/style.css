@@ -1,0 +1,5 @@
+.gameMenu form {
+  position: fixed;
+  display: flex;
+  flex-flow: column nowrap;
+}

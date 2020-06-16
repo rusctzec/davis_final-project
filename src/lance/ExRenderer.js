@@ -13,13 +13,15 @@ export default class ExRenderer extends Renderer {
       "fireBullet",
       "playerHurt",
       "playerDestroyed",
+      "projectileHit",
       "spawn",
     ];
     this.sounds = {};
-    for (let sound of sounds) this.sounds[sound] = new Howl({src: `assets/audio/${sound}.wav`});
+    for (let sound of sounds) this.sounds[sound] = new Howl({src: `/assets/audio/${sound}.wav`});
 
-    PIXI.Loader.shared.baseUrl = "assets/images/";
+    PIXI.Loader.shared.baseUrl = "/assets/images/";
 
+    this.cameraShake = 0;
     this.container = new PIXI.Container();
     this.PIXI = PIXI;
   }
@@ -31,7 +33,8 @@ export default class ExRenderer extends Renderer {
     return new Promise((resolve, reject) => {
 
       PIXI.Loader.shared.add([
-        {name: "orb", url: "orb.png"}
+        {name: "orb", url: "orb.png"},
+        {name: "triangle", url: "triangle.png"}
       ]).load((loader, resources) => {
         resolve();
         this.gameEngine.emit("renderer.ready");
@@ -42,9 +45,11 @@ export default class ExRenderer extends Renderer {
   draw(t, dt) {
     super.draw(t, dt);
 
-    this.canvas._x = Math.lerp(this.canvas._x, this.canvas.targetX, 0.10);
-    this.canvas._y = Math.lerp(this.canvas._y, this.canvas.targetY, 0.10);
+    this.canvas._x = Math.lerp(this.canvas._x, this.canvas.targetX, 0.10) + this.cameraShake*(Math.random()-0.5);
+    this.canvas._y = Math.lerp(this.canvas._y, this.canvas.targetY, 0.10) + this.cameraShake*(Math.random()-0.5);
     this.canvas._scale = Math.lerp(this.canvas._scale, this.canvas.targetScale, 0.10);
+
+    this.cameraShake = Math.lerp(this.cameraShake, 0, 0.10);
 
     for (let objId of Object.keys(this.sprites)) {
       let obj = this.gameEngine.world.objects[objId];

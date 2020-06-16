@@ -11,7 +11,7 @@ function activationHandler(e) {
 
 const ToolBoxItem = (props) => {
   let elementRef = useRef(null);
-  let activeRef = useRef(false);
+  let activeRef = useRef(false); // stores whether the element is currently "active" so that it can replay the animation when it changes between true or false
   if (elementRef.current && props.active && activeRef.current != props.active) {
     activationHandler({target: elementRef.current, active: props.active});
   } else if (elementRef.current && !props.active && activeRef.current != props.active && props.animBoth) {

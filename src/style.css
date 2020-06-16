@@ -1,4 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap');
+
 html, body, #root {
+  image-rendering: pixelated;
   padding: 0;
+  height: 100%;
+  width: 100%;
   margin: 0;
+  --text-color: rgba(0,0,0,.87);
+  --bg-color: whitesmoke;
+  --content-bg-color: #ffffff;
+  background-color: --bg-color;
+  font-family: 'Lato', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-color);
+}
+
+button {
+  border: none;
+  background-color: #505050;
+  color: white;
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 15px;
+  font-family: sans-serif;
+}
+
+button.big {
+  font-size: 25px;
+  padding: 12px;
+}
+
+button:hover:enabled {
+  filter: brightness(85%);
+}
+
+button:active:enabled {
+  filter: brightness(70%);
+}
+
+button:disabled {
+  pointer-events: none;
+  filter: contrast(40%) brightness(130%);
+}
+
+main {
+  display: flex;
+  flex-flow: column nowrap;
+  align-content: center;
+  align-items: center;
+  overflow: auto;
+  margin: 0 auto;
+  height: 100%;
+  width: 70%;
+  background-color: var(--content-bg-color);
+}
+
+@media only screen and (max-width: 500px) {
+  main {
+    width: 100%;
+  }
 }

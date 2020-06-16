@@ -27,3 +27,9 @@ const serverEngine = new ExServerEngine(io, gameEngine, {
 
 // start the game
 serverEngine.start();
+
+// api routes
+app.get("/api/games", (req, res) => {
+  res.json(serverEngine.summarizeRooms());
+});
+
