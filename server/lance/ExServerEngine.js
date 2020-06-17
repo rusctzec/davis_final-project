@@ -78,6 +78,9 @@ export default class ExServerEngine extends ServerEngine {
     });
 
     socket.on("requestRoom", roomName => {
+      console.log("requestRoom", roomName);
+      // dont allow rooms longer than 6 characters (not including slash)
+      if (!roomName || roomName.length > 7) return;
       if (!this.rooms[roomName]) {
         this.createRoom(roomName);
       }
@@ -126,7 +129,9 @@ export default class ExServerEngine extends ServerEngine {
   // return info about the rooms and the amount of players in each (for the gallery display page to show)
   summarizeRooms() {
     let arr = [];
-    for (let roomName of Object.keys(this.settings)) {
+    let roomNames = Object.keys(this.rooms);
+    if (this.settings) roomNames.push(...Object.keys(this.settings));
+    for (let roomName of new Set(roomNames)) { // (Set removes duplicates)
       if (roomName == "/lobby") continue; // don't include the /lobby room it's just a byproduct of lance's functionality
       let players = 0;
       for (let playerId of Object.keys(this.gameEngine.playerLocations)) {
@@ -157,9 +162,12 @@ export default class ExServerEngine extends ServerEngine {
         newFile.data[i + 3] = 0xff;
       }
     }
-    // in a properly built this should be writing to build/ not public/
-    // in the future it might actually be a better idea to write these in the server folder and serve them through an express route
-    newFile.pack().pipe(fs.createWriteStream(`public/assets/images/rooms${roomName}.png`));
+
+    // these will be served through an express route
+    fs.mkdir('server/tmp/rooms', {recursive: true}, err => {
+      if (err) { console.error(err); return;}
+      newFile.pack().pipe(fs.createWriteStream(`server/tmp/rooms${roomName}.png`));
+    });
   }
 
   // generates a settings object with default settings
@@ -177,6 +185,7 @@ export default class ExServerEngine extends ServerEngine {
   }
 
   createRoom(roomName, settings) {
+    console.log("createRoom", roomName);
     if (!this.settings) this.gameEngine.settings = this.settings = {}; // create settings dictionary if doesn't already exist
     if (!this.gameEngine.tileMaps) this.gameEngine.tileMaps = {}; // create tilemaps dictionary if doesn't already exist
     super.createRoom(roomName);
@@ -187,7 +196,6 @@ export default class ExServerEngine extends ServerEngine {
     Settings.findOneAndReplace({roomName: roomName}, this.settings[roomName], {upsert: true});
 
     // generate tilemap for the room if there is none in place
-    console.log(roomName);
     this.gameEngine.tileMaps[roomName] = this.gameEngine.tileMaps[roomName] || this.gameEngine.createTileMap(this.settings[roomName].worldWidth, this.settings[roomName].worldHeight);
   }
 

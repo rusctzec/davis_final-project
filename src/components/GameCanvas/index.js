@@ -49,8 +49,8 @@ class GameCanvas extends React.Component {
   render() {
     return (
       <InputProvider>
-        <GameMenu settings={clientEngine.settings} state={this.state} onSubmit={update => clientEngine.sendSettingsUpdate(update)}/>
         <canvas ref={this.canvasRef} width={this.state.width} height={this.state.height}/>
+        <GameMenu settings={clientEngine.settings} state={this.state} onSubmit={update => clientEngine.sendSettingsUpdate(update)}/>
         <ToolBox
           state={this.state}
           tools={TOOLS}
@@ -240,6 +240,7 @@ class GameCanvas extends React.Component {
 
   componentWillUnmount() {
     // lance doesn't provide the ability to destroy or restart the gameengine, so it's neccesary to perform a full page refresh to create a clean slate
+    console.log("gameCanvas WILL UNMOUNT");
     clientEngine.disconnect();
     window.location.reload();
   }

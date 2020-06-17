@@ -9,6 +9,8 @@ dependencies:
   howler: 2.2.0
   lance-gg: 4.0.8
   mongoose: 5.9.19_mongoose@5.9.19
+  passport: 0.4.1
+  passport-local: 1.0.0
   pixi-particles: 4.2.1_pixi.js@5.2.4
   pixi.js: 5.2.4
   pngjs: 5.0.0
@@ -9418,6 +9420,29 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-s2PlXoAGym/iF4TS2yK9FdeRfxQ=
+  /passport-local/1.0.0:
+    dependencies:
+      passport-strategy: 1.0.0
+    dev: false
+    engines:
+      node: '>= 0.4.0'
+    resolution:
+      integrity: sha1-H+YyaMkudWBmJkN+O5BmYsFbpu4=
+  /passport-strategy/1.0.0:
+    dev: false
+    engines:
+      node: '>= 0.4.0'
+    resolution:
+      integrity: sha1-tVOaqPwiWj0a0XlHbd8ja0QPUuQ=
+  /passport/0.4.1:
+    dependencies:
+      passport-strategy: 1.0.0
+      pause: 0.0.1
+    dev: false
+    engines:
+      node: '>= 0.4.0'
+    resolution:
+      integrity: sha512-IxXgZZs8d7uFSt3eqNjM9NQ3g3uQCW5avD8mRNoXV99Yig50vjuaez6dQK2qC0kVWPRTujxY0dWgGfT09adjYg==
   /path-browserify/0.0.1:
     dev: false
     resolution:
@@ -9500,6 +9525,10 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==
+  /pause/0.0.1:
+    dev: false
+    resolution:
+      integrity: sha1-HUCLP9t2kjuVQ9lvtMnf1TXZy10=
   /pbkdf2/3.1.1:
     dependencies:
       create-hash: 1.2.0
@@ -13492,6 +13521,8 @@ specifiers:
   lance-gg: ^4.0.8
   mongoose: ^5.9.19
   nodemon: ^2.0.4
+  passport: ^0.4.1
+  passport-local: ^1.0.0
   pixi-particles: ^4.2.1
   pixi.js: ^5.2.4
   pngjs: ^5.0.0

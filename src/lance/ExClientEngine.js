@@ -114,6 +114,7 @@ export default class ExClientEngine extends ClientEngine {
       let lenX = data.length; if (lenX === 0) return;
       let lenY = data[0].length;
       let tileMap = this.gameEngine.tileMaps[update.roomName];
+      if (!tileMap || !tileMap[0]) return;
       console.log("tileMap", tileMap.length, tileMap[0].length);
       this.canvas.inboundGraphics.beginFill(this.canvas.state.color);
       for (let i=0; i<lenX && i+x < this.gameEngine.worldWidth; i++) {

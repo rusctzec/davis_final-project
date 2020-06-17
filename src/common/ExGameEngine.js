@@ -5,6 +5,10 @@ import CannonBall from './CannonBall';
 export default class ExGameEngine extends GameEngine {
   constructor(options) {
     super(options);
+
+    if (!this.world) this.world = {};
+    this.world.playerCount = 0;
+
     this.physicsEngine = new SimplePhysicsEngine({
         gameEngine: this,
         collisions: {
@@ -312,6 +316,7 @@ export default class ExGameEngine extends GameEngine {
     this.playerLocations = {};
     // create dictionary to track a tilemap representing the canvas to each room if it doesn't already exist
     if (!this.tileMaps) this.tileMaps = {};
+
 
     super.start();
     console.log("GameEngine started");

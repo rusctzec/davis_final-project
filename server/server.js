@@ -33,3 +33,7 @@ app.get("/api/games", (req, res) => {
   res.json(serverEngine.summarizeRooms());
 });
 
+app.get("/thumbnails/:roomName", (req, res) => {
+  res.sendFile(path.join(__dirname, `/tmp/rooms/${req.params.roomName}`));
+});
+
