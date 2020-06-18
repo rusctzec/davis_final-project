@@ -6,21 +6,12 @@ let Overlay = props => {
     opacity: props.visible ? 1 : 0,
     pointerEvents: props.visible ? 'auto' : 'none',
   }}>
-      {
-        props.display == "connecting" ?
-          <div>Connecting...</div>
-        :
-        props.display == "disconnected" ?
-          <div>
-            <div>Disconnected</div>
-            {/*
-            <button onClick={window.location.reload()}>Attempt to Reconnect</button>
-            <button onClick={window.location.href = "/gallery"}>Return to Gallery</button>
-            */}
-          </div>
-        :
-        "[Error]"
-      }
+    <div>{props.text}</div>
+    {props.buttons ?
+    <div>
+      <button onClick={() => window.location.reload()}>Attempt to Reconnect</button>
+      <button onClick={() => window.location.href = "/gallery"}>Return to Gallery</button>
+    </div> : null}
   </div>
 };
 

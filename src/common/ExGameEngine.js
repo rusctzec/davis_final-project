@@ -214,7 +214,7 @@ export default class ExGameEngine extends GameEngine {
         for (let j = y; j < y+size && j < settings.worldHeight; j++) {
           if (i < 0 || j < 0) continue;
           let col = tileMap[i];
-          if (!col) console.log("COL IS NULL", tileMap.length, this.tileMaps);
+          if (!col) console.log("COL IS NULL", tileMap.length);
           col[j] = fill===-1?0:1;
         }
       }

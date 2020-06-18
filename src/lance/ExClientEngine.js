@@ -69,7 +69,7 @@ export default class ExClientEngine extends ClientEngine {
     console.log("receiveSettingsUpdate", update, roomName, update[roomName]);
     // if update has settings for your room, and the dimensions are different than your current dimensions OR you don't have any settings yet at all, regenerate your room's tilemap to the new dimensions
     if (update[roomName]) {
-      if (!this.settings[roomName] || (this.settings[roomName] && (this.settings[roomName].worldWidth != update[roomName].worldWidth || this.settings[roomName].worldHeight != update[roomName].worldHeight))) {
+      if (!this.settings[roomName] || (this.settings[roomName] && (this.settings[roomName].worldWidth !== update[roomName].worldWidth || this.settings[roomName].worldHeight !== update[roomName].worldHeight))) {
         console.log("SETTINGS UPDATE - DIMENSIONS CHANGED");
         this.gameEngine.tileMaps[roomName] = this.gameEngine.createTileMap(update[roomName].worldWidth, update[roomName].worldHeight, this.gameEngine.tileMaps[roomName])
 

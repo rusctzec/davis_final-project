@@ -65,7 +65,6 @@ export default class PlayerCharacter extends DynamicObject {
       renderer.sounds.playerDestroyed.play();
       if (gameEngine.playerId == this.playerId) {
         gameEngine.player = null;
-        renderer.gameCanvas.resetView();
         this.gameEngine.clientEngine.gameMode = false;
       }
       renderer.cameraShake += 10;

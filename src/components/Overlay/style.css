@@ -14,9 +14,11 @@
 .loadingOverlay > div {
   text-align: center;
   margin: 0 auto;
-  margin-top: 40;
   font-size: 5vw;
+}
+.loadingOverlay > div:first-child {
   animation: 1s cubic-bezier(0.19, 1, 0.22, 1) 0.2s 1 normal both running text-appear;
+  margin-top: 40vh;
 }
 
 .loadingOverlay > div > * {

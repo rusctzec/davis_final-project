@@ -197,6 +197,8 @@ export default class ExServerEngine extends ServerEngine {
 
     // generate tilemap for the room if there is none in place
     this.gameEngine.tileMaps[roomName] = this.gameEngine.tileMaps[roomName] || this.gameEngine.createTileMap(this.settings[roomName].worldWidth, this.settings[roomName].worldHeight);
+    this.settings[roomName].worldWidth = this.gameEngine.tileMaps[roomName].length;
+    this.settings[roomName].worldHeight = this.gameEngine.tileMaps[roomName][0].length;
   }
 
   start() {

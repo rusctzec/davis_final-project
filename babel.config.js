@@ -1,3 +1,5 @@
+// needed for babel-node and building server with webpack
+
 module.exports = function(api) {
   api.cache(true);
 

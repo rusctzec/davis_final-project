@@ -1,0 +1,39 @@
+nav {
+  top: 0px;
+  left: 0px;
+  background-color: var(--negative-bg-color);
+  height: 60px;
+  width: 100vw;
+  font-size: 25px;
+  line-height: 40px;
+  max-height: 10vh;
+  border-bottom: 4px solid #404040;
+}
+
+.navInner {
+  margin: 0 auto;
+  width: 50%;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-evenly;
+}
+@media only screen and (max-width: 500px) {
+  .navInner {
+    justify-content: space-evenly;
+    font-size: 20px;
+    width: 100%;
+  }
+}
+
+nav * {
+  margin: 10px;
+}
+
+nav a {
+  text-decoration: none;
+  color: white;
+
+}
+nav a:visited {
+  color: white;
+}

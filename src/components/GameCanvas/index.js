@@ -32,6 +32,7 @@ class GameCanvas extends React.Component {
       room: "/lobby",
       ready: false,
       overlay: "connecting",
+      overlayText: "Connecting...",
       // controlled by room:
       width: 50,
       height: 50,
@@ -49,8 +50,8 @@ class GameCanvas extends React.Component {
   render() {
     return (
       <InputProvider>
-        <canvas ref={this.canvasRef} width={this.state.width} height={this.state.height}/>
         <GameMenu settings={clientEngine.settings} state={this.state} onSubmit={update => clientEngine.sendSettingsUpdate(update)}/>
+        <canvas ref={this.canvasRef} width={this.state.width} height={this.state.height}/>
         <ToolBox
           state={this.state}
           tools={TOOLS}
@@ -58,7 +59,7 @@ class GameCanvas extends React.Component {
           onChange={newState => this.setState({...this.state, ...newState})}
           toggleGameMode={(val) => this.toggleGameMode(val)}
         />
-        <Overlay visible={!this.state.ready} display={this.state.overlay}/>
+        <Overlay visible={!this.state.ready} buttons={this.state.overlay != "connecting"} text={this.state.overlayText}/>
       </InputProvider>
     );
   }
@@ -216,7 +217,7 @@ class GameCanvas extends React.Component {
     });
 
     window.addEventListener("unhandledrejection", e => {
-      this.setState({...this.state, ready: false, overlay: "disconnected"});
+      this.setState({...this.state, ready: false, overlay: "disconnected", overlayText:"Disconnected"});
     });
 
     window.addEventListener('mousemove', this.handleMouseMove.bind(this));
@@ -268,9 +269,9 @@ class GameCanvas extends React.Component {
   receiveSettingsUpdate(update) {
     let settings = update[this.state.room];
     if (!settings) return;
-    console.log("THE!!!! settingsupdate", this.state.room, settings, update);
+    console.log("GameCanvas receiveSettingsUpdate", this.state.room, settings, update);
     let dimensionsChanged = false;
-    if (settings.worldWidth != this.state.width || settings.worldHeight != this.state.height) {
+    if (settings.worldWidth !== this.state.width || settings.worldHeight !== this.state.height) {
       this.resizeRenderer(settings);
       dimensionsChanged = true;
       console.log("DIMENSIONS CHANGED - ", this.state.room, "CANVAS RESET");
@@ -299,12 +300,12 @@ class GameCanvas extends React.Component {
   toggleGameMode(value) {
     if (!clientEngine.socket) return // dont allow game mode until socket is ready
     let newValue =  (value == null ? !this.state.gameMode : value);
-    if (newValue == this.state.gameMode) return false;
+    if (newValue === this.state.gameMode) return false;
     if (newValue) {this.canvasRef.current.scale = 7; clientEngine.socket.emit('requestCreation'); this.changeActive(TOOLS.cannon, true);
     clientEngine.controls.boundKeys = clientEngine.boundKeys
 
     }
-    else {this.resetView(); clientEngine.socket.emit('requestDeath'); if (this.state.active == TOOLS.cannon) this.changeActive(TOOLS.brush); clientEngine.controls.boundKeys = {}}
+    else {this.resetView(); clientEngine.socket.emit('requestDeath'); if (this.state.active === TOOLS.cannon) this.changeActive(TOOLS.brush); clientEngine.controls.boundKeys = {}}
     this.setState({...this.state, gameMode: newValue});
     return true;
   }
@@ -325,7 +326,7 @@ class GameCanvas extends React.Component {
   }
   // handle user's brush strokes
   makeStroke(x, y) {
-    if (this.state.room == "/lobby") return // dont allow drawing until a room other than lobby has been assigned
+    if (this.state.room === "/lobby") return // dont allow drawing until a room other than lobby has been assigned
 
     this.strokeCount++;
     const size = (this.state.tool === TOOLS.eraser) ? this.state.eraserSize : this.state.brushSize;
@@ -404,7 +405,7 @@ class GameCanvas extends React.Component {
     const [prevPageX, prevPageY] = this.previousPagePosition;
     if (e.buttons & 1 || touch) this.previousPagePosition = [pageX, pageY];
     else this.previousPagePosition = [undefined, undefined];
-    if (touch && e.touches.length == 2) panning.bind(this)();
+    if (touch && e.touches.length === 2) panning.bind(this)();
     else switch(this.state.active) {
       case TOOLS.brush:
         brush.bind(this)(false);
@@ -417,6 +418,7 @@ class GameCanvas extends React.Component {
         break;
       case TOOLS.cannon:
         cannon.bind(this)();
+        break;
       default:
         this.changeActive(this.state.tool);
     }
@@ -488,7 +490,7 @@ class GameCanvas extends React.Component {
     }
 
     function cannon() {
-      if (e.type == "click" && this.state.gameMode && clientEngine.gameEngine.player) {
+      if (e.type === "click" && this.state.gameMode && clientEngine.gameEngine.player) {
         console.log("CANNON");
         clientEngine.sendInput("fire", {eventPosition: {x: relX, y: relY}});
       }

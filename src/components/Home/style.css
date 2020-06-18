@@ -10,8 +10,9 @@
 
 .titleBlock .filler {
   position: absolute;
-  width: 300px;
-  height: 100px;
+  width: 350px;
+  margin-left: -50px;
+  height: 90px;
   transform: rotate(-12deg);
   background-color: #e9e9e9;
 }
@@ -22,7 +23,7 @@
   grid-column: 1;
   margin: 0; padding: 0;
   font-size: 70px;
-  animation: 1s ease-out 0.5s 1 normal both running header;
+  animation: 1s ease-out 0.5s 1 both running header;
 }
 
 .titleBlock p {
@@ -51,7 +52,7 @@
   }
   100% {
     top: 0px;
-    opacity: 0px;
+    opacity: 1;
   }
 }
 @keyframes bg {0% {opacity: 0} 100% {opacity: 1}}

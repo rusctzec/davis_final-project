@@ -11,7 +11,7 @@ const ToolBox = (props) => {
       img="/assets/images/brush.svg"
       onChange={e => props.onChange({brushSize: isNaN(e.target.value) ? props.state.brushSize : Math.min(Math.max(parseInt(e.target.value),1),10) })}
       onClick={() => props.dispatch(props.tools.brush)}
-      active={props.state.active == props.tools.brush}
+      active={props.state.active === props.tools.brush}
       value={props.state.brushSize}
       name="Brush [B]"/>
       <ToolBoxItem
@@ -19,18 +19,18 @@ const ToolBox = (props) => {
       img="/assets/images/eraser.svg"
       onChange={e => props.onChange({eraserSize: isNaN(e.target.value) ? props.state.eraserSize : Math.min(Math.max(parseInt(e.target.value),1),10) })}
       onClick={() => props.dispatch(props.tools.eraser)}
-      active={props.state.active == props.tools.eraser}
+      active={props.state.active === props.tools.eraser}
       value={props.state.eraserSize}
       name="Eraser [E]"/>
       <ToolBoxItem
       img="/assets/images/hand.svg"
       onClick={() => props.dispatch(props.tools.panning)}
-      active={props.state.active == props.tools.panning}
+      active={props.state.active === props.tools.panning}
       name="Pan Tool [Space]"/>
       <ToolBoxItem
-      img="/assets/images/pause.svg"
+      img="/assets/images/cannon.svg"
       onClick={() => props.dispatch(props.tools.cannon)}
-      active={props.state.active == props.tools.cannon}
+      active={props.state.active === props.tools.cannon}
       name="Cannon [C]"/>
       <ToolBoxItem
       onClick={props.toggleGameMode}

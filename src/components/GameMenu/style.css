@@ -2,4 +2,25 @@
   position: fixed;
   display: flex;
   flex-flow: column nowrap;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  left: 25px;
+  top: 25px;
+  border-radius: 3%;
+  border: 1px solid lightgrey;
+  padding: 20px;
+}
+.gameMenu form:hover {
+  opacity: 1;
+}
+
+.gameMenu form > * {
+  margin: 5px;
+}
+.gameMenu form input {
+  margin-left: 8px;
+}
+
+.gameMenu form span {
+  font-size: 20px;
 }

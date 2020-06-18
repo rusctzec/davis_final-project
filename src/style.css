@@ -7,6 +7,7 @@ html, body, #root {
   width: 100%;
   margin: 0;
   --text-color: rgba(0,0,0,.87);
+  --negative-bg-color: #505050;
   --bg-color: whitesmoke;
   --content-bg-color: #ffffff;
   background-color: --bg-color;
@@ -22,7 +23,7 @@ input {
 
 button {
   border: none;
-  background-color: #505050;
+  background-color: var(--negative-bg-color);
   color: white;
   padding: 5px;
   border-radius: 5px;

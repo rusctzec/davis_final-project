@@ -46,13 +46,18 @@ export default class GameMenu extends React.Component {
         </li>
           */}
         <form onSubmit={handleSubmit}>
-          <input type="number" min="10" max="1000" name="worldWidth"
-          value={this.state.activated ? this.state.form.worldWidth : this.props.state.width} onChange={handleChange}/>
-          <input type="number" min="10" max="1000" name="worldHeight"
-          value={this.state.activated ? this.state.form.worldHeight : this.props.state.height} onChange={handleChange}/>
-          <input type="checkbox" name="floor" checked={this.state.form.floor} onChange={handleChange}/>
-          <input type="checkbox" name="walls" checked={this.state.form.walls} onChange={handleChange}/>
-          <button>Submit</button>
+          <span>Settings</span>
+          <label>Width
+            <input type="number" min="10" max="1000" name="worldWidth"
+            value={this.state.activated ? this.state.form.worldWidth : this.props.state.width} onChange={handleChange}/>
+          </label>
+          <label>Height
+            <input type="number" min="10" max="1000" name="worldHeight"
+            value={this.state.activated ? this.state.form.worldHeight : this.props.state.height} onChange={handleChange}/>
+          </label>
+          <label>Walls <input type="checkbox" name="floor" checked={this.state.form.floor} onChange={handleChange}/></label>
+          <label>Floor <input type="checkbox" name="walls" checked={this.state.form.walls} onChange={handleChange}/></label>
+          <button>Save</button>
         </form>
       </div>
     );

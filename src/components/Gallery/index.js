@@ -1,8 +1,12 @@
 import React from 'react';
 import GalleryItem from '../GalleryItem';
+import { AuthContext } from '../../utils/AuthContext';
 import './style.css';
 
 export default class Gallery extends React.Component {
+
+  static contextType = AuthContext;
+
   constructor(props) {
     super(props);
     this.state = {
@@ -11,15 +15,15 @@ export default class Gallery extends React.Component {
       query: '1',
       private: false,
     };
+    this.context = AuthContext;
   }
 
   render() {
-
     return (
       <div className="galleryContainer">
-        <form onSubmit={() => this.props.history.push("/game/"+this.state.query)}>
+        <form onSubmit={e => { e.preventDefault(); this.props.history.push("/game/"+this.state.query)}}>
           <div>Join or create a new game</div>
-          <label>/</label><input type="text" spellcheck="false" value={this.state.query} onChange={e => {
+          <label>/</label><input type="text" spellCheck="false" value={this.state.query} onChange={e => {
             let str = e.target.value;
             str.replace('/', '');
             let strMatch = str.match(/^[0-9A-Za-z]{0,6}$/);
@@ -39,10 +43,17 @@ export default class Gallery extends React.Component {
   }
 
   componentDidMount() {
-    fetch("/api/games")
-    .then(r => r.json())
-    .then(r => {
-      this.setState({...this.state, ready: true, items: r});
-    });
+    this.context.onReloadNeeded();
+    (async () => {
+
+       let r2 = await fetch("/api/games")
+       let games = await r2.json();
+
+      this.setState({...this.state,
+        ready: true,
+        items: games,
+      });
+
+    })()
   }
 }
