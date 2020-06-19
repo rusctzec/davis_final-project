@@ -1,6 +1,7 @@
 import { ServerEngine } from 'lance-gg';
 import { PNG } from 'pngjs'
 import fs from 'fs';
+import path from 'path';
 import '../../src/utils/MathExtras';
 import {TileMap, Settings} from "../models";
 
@@ -11,6 +12,7 @@ export default class ExServerEngine extends ServerEngine {
 
   constructor(io, gameEngine, options) {
     super(io, gameEngine, options);
+    this.gameEngine.playerLocations = this.gameEngine.playerLocations || {};
 
   }
 
@@ -164,9 +166,9 @@ export default class ExServerEngine extends ServerEngine {
     }
 
     // these will be served through an express route
-    fs.mkdir('server/tmp/rooms', {recursive: true}, err => {
+    fs.mkdir(path.join(__dirname, 'tmp/rooms'), {recursive: true}, err => {
       if (err) { console.error(err); return;}
-      newFile.pack().pipe(fs.createWriteStream(`server/tmp/rooms${roomName}.png`));
+      newFile.pack().pipe(fs.createWriteStream(path.join(__dirname, `tmp/rooms${roomName}.png`)));
     });
   }
 

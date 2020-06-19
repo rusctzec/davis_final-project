@@ -197,6 +197,9 @@ export default class ExGameEngine extends GameEngine {
   }
 
   updateTileMap(update) {
+    // (too lazy to fool-proof method right now)
+    try {
+
     // if there is no update.roomName it must be coming from the player itself so just use the player's room
     let roomName = update.roomName || this.playerLocations[this.playerId];
     if (roomName == "/lobby") return; // no drawing in lobby
@@ -230,6 +233,7 @@ export default class ExGameEngine extends GameEngine {
         }
       }
     }
+    } catch (e) {console.log("TILEMAP ERROR:", e)}
   }
 
   spawnPlayer(playerId) {

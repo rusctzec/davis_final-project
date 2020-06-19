@@ -28,6 +28,9 @@ module.exports = function(env) {
           }
         }
       ]
-    }
+    },
+    optimization: {
+      minimize: false
+    },
   }
 }

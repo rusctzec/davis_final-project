@@ -67,7 +67,7 @@
   },
   "scripts": {
     "dev-client": "node scripts/start.js",
-    "dev-server": "cross-env NODE_ENV=development babel-watch server/server.js",
+    "dev-server": "cross-env MONGODB_URI='mongodb://localhost/malleary' NODE_ENV=development babel-watch server/server.js",
     "dev": "concurrently \"npm run dev-server\" \"npm run dev-client\"",
     "build-client": "node scripts/build.js",
     "build-server": "webpack --config server/webpack.config.js",
