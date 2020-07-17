@@ -149,6 +149,7 @@ export default class ExServerEngine extends ServerEngine {
     return arr;
   }
 
+  // converts tilemap data to a PNG
   generateImage(roomName) {
     let tileMap = this.gameEngine.tileMaps[roomName];
     if (!tileMap) return;
@@ -165,10 +166,13 @@ export default class ExServerEngine extends ServerEngine {
       }
     }
 
+    // trim up to server directory because __dirname is at different paths within it depending on if this is a dev or production build
+    // (e.g. malleary/server/lance -> malleary/server)
+    const thumbnailPath = __dirname.replace(/(?!.*?server)[^server].*$/, "")
     // these will be served through an express route
-    fs.mkdir(path.join(__dirname, 'tmp/rooms'), {recursive: true}, err => {
+    fs.mkdir(path.join(thumbnailPath, 'tmp/rooms'), {recursive: true}, err => {
       if (err) { console.error(err); return;}
-      newFile.pack().pipe(fs.createWriteStream(path.join(__dirname, `tmp/rooms${roomName}.png`)));
+      newFile.pack().pipe(fs.createWriteStream(path.join(thumbnailPath, `tmp/rooms${roomName}.png`)));
     });
   }
 
