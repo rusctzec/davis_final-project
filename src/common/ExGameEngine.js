@@ -61,32 +61,63 @@ export default class ExGameEngine extends GameEngine {
       let tileMap = this.tileMaps[roomName];
       if (!tileMap) continue;
 
+      let projectileCollide = () => {
+        console.log("projectileCollide")
+        // terrain damage code (activates on server and is then distributed to avoid canvas desync)
+        if (this.serverEngine) {
+          this.serverEngine.handleCanvasUpdate({
+            x: Math.round(projectile.x-Math.round(projectile.width/2)),
+            y: Math.round(projectile.y-Math.round(projectile.height/2)),
+            roomName: this.playerLocations[projectile.playerId],
+            data:
+            [
+              [ 0, 0,-1,-1, 0, 0],
+              [ 0,-1,-1,-1,-1, 0],
+              [-1,-1,-1,-1,-1,-1],
+              [-1,-1,-1,-1,-1,-1],
+              [-1,-1,-1,-1,-1,-1],
+              [ 0,-1,-1,-1,-1, 0],
+              [ 0, 0,-1,-1, 0, 0],
+            ]
+          });
+        }
+
+        if (this.renderer) { this.renderer.sounds.projectileHit.play(); this.renderer.cameraShake += 5}
+        if (projectile) {this.removeObjectFromWorld(projectile);}
+      }
+
+      // walls/floors collisions
+      if (settings.bottomWall) {
+        if (projectile.position.y >= settings.worldHeight) {
+          projectileCollide();
+          return
+        }
+      }
+      if (settings.topWall) {
+        if (projectile.position.y < 0) {
+          projectileCollide();
+          return
+        }
+      }
+      if (settings.leftWall) {
+        if (projectile.position.x < 0) {
+          projectileCollide();
+          return
+        }
+      }
+      if (settings.rightWall) {
+        if (projectile.position.x >= settings.worldWidth) {
+          projectileCollide();
+          return
+        }
+      }
+
       let x = Math.round(projectile.x), y = Math.round(projectile.y);
-      l: for (let i = x; i < projectile.width+x; i++) {
+      for (let i = x; i < projectile.width+x; i++) {
         for (let j = y; j < projectile.height+y; j++) {
           if (tileMap.get(Math.round(i),Math.round(j))) {
-            // terrain damage code (activates on server and is then distributed to avoid canvas desync)
-            if (this.serverEngine) {
-              this.serverEngine.handleCanvasUpdate({
-                x: Math.round(projectile.x-Math.round(projectile.width/2)),
-                y: Math.round(projectile.y-Math.round(projectile.height/2)),
-                roomName: this.playerLocations[projectile.playerId],
-                data:
-                [
-                  [ 0, 0,-1,-1, 0, 0],
-                  [ 0,-1,-1,-1,-1, 0],
-                  [-1,-1,-1,-1,-1,-1],
-                  [-1,-1,-1,-1,-1,-1],
-                  [-1,-1,-1,-1,-1,-1],
-                  [ 0,-1,-1,-1,-1, 0],
-                  [ 0, 0,-1,-1, 0, 0],
-                ]
-              });
-            }
-
-            if (this.renderer) { this.renderer.sounds.projectileHit.play(); this.renderer.cameraShake += 5}
-            if (projectile) {this.removeObjectFromWorld(projectile);}
-            break l;
+            projectileCollide();
+            return
           }
         }
       }
@@ -111,7 +142,6 @@ export default class ExGameEngine extends GameEngine {
       let colliding = false;
       let onFloor = false;
       let incident = null;
-      let bufferedIncrease = 0;
       player.velocity.x *= 0.9; // deceleration
       player.velocity.y += 0.1; // gravity
       // tilemap collision handling
@@ -119,6 +149,7 @@ export default class ExGameEngine extends GameEngine {
       for (let i = x; i < player.width+x; i++) {
         for (let j = y; j < player.height+y; j++) {
           let collision = false;
+
           if (tileMap.get(i,j)) {
             collision = true;
             if (!incident) { // checking for incident (stop after first)
@@ -162,7 +193,7 @@ export default class ExGameEngine extends GameEngine {
             }
           }
           else
-          down: if (j > player.height+y-4 && Math.sign(player.velocity.y) == 1) { // botton part for floor detection
+          down: if (j > player.height+y-4 && Math.sign(player.velocity.y) == 1) { // bottom part for floor detection
             if (collision && !handled.d) {
               handled.d = true;
               player.position.y -= 1;
@@ -172,6 +203,18 @@ export default class ExGameEngine extends GameEngine {
             }
           }
         }
+      }
+
+      if (settings.leftWall && player.position.x < 0) {
+        player.position.x = 0;
+      } else if (settings.rightWall && player.position.x + player.width >= settings.worldWidth) {
+        player.position.x = settings.worldWidth - player.width;
+      }
+      if (settings.topWall && player.position.y < 0) {
+        player.position.y = 0;
+      } else if (settings.bottomWall && player.position.y + player.height > settings.worldHeight) {
+        player.position.y = settings.worldHeight - player.height;
+        onFloor = true;
       }
 
       if (player == this.player) {
@@ -197,9 +240,6 @@ export default class ExGameEngine extends GameEngine {
   }
 
   updateTileMap(update) {
-    // (too lazy to fool-proof method right now)
-    try {
-
     // if there is no update.roomName it must be coming from the player itself so just use the player's room
     let roomName = update.roomName || this.playerLocations[this.playerId];
     if (roomName == "/lobby") return; // no drawing in lobby
@@ -209,6 +249,10 @@ export default class ExGameEngine extends GameEngine {
     if (!tileMap) {
       return;
     }
+
+    // (too lazy to fool-proof method right now)
+    try {
+
     // fill by rect
     let {x, y, data, size, fill} = update;
     if (x == null || y == null) return;
@@ -227,7 +271,7 @@ export default class ExGameEngine extends GameEngine {
       let lenY = data[0].length;
       for (let i=0; i < lenX && i < settings.worldWidth; i++) {
         for (let j=0; j < lenY && j < settings.worldHeight; j++) {
-          let val = data[i][j]; if (val === 0 || i+x < 0 || j+y < 0 || i+x > settings.worldWidth || j+y > settings.worldHeight) continue;
+          let val = data[i][j]; if (val === 0 || i+x < 0 || j+y < 0 || i+x >= settings.worldWidth || j+y >= settings.worldHeight) continue;
           if (val === -1) tileMap[x+i][y+j] = 0;
           else tileMap[x+i][y+j] = 1;
         }

@@ -36,6 +36,7 @@ class GameCanvas extends React.Component {
       // controlled by room:
       width: 50,
       height: 50,
+      roomSettings: {}
     };
 
     this.canvasRef = React.createRef();
@@ -50,7 +51,7 @@ class GameCanvas extends React.Component {
   render() {
     return (
       <InputProvider>
-        <GameMenu settings={clientEngine.settings} state={this.state} onSubmit={update => clientEngine.sendSettingsUpdate(update)}/>
+        <GameMenu settings={clientEngine.settings} roomSettings={this.state.roomSettings} state={this.state} onSubmit={update => clientEngine.sendSettingsUpdate(update)}/>
         <canvas ref={this.canvasRef} width={this.state.width} height={this.state.height}/>
         <ToolBox
           state={this.state}
@@ -280,6 +281,7 @@ class GameCanvas extends React.Component {
       ...this.state,
       width: settings.worldWidth,
       height: settings.worldHeight,
+      roomSettings: {...this.state.roomSettings, ...settings}
     }, () => {
       if (dimensionsChanged) this.resetView();
     });

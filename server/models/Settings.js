@@ -6,8 +6,10 @@ const settingsSchema = new mongoose.Schema({
   worldHeight: Number,
   drawers: [String],
   admins: [String],
-  walls: Boolean,
-  floor: Boolean,
+  topWall: Boolean,
+  bottomWall: Boolean,
+  leftWall: Boolean,
+  rightWall: Boolean,
   allow: [String],
   exclude: [String],
 });

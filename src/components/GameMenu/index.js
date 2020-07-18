@@ -7,19 +7,18 @@ export default class GameMenu extends React.Component {
     super(props);
     this.state = {
       form: {
-        worldWidth: props.state.width,
-        worldHeight: props.state.height,
-        floor: true,
-        walls: false,
-        active: false,
+        worldWidth: 50,
+        worldHeight: 50,
+        topWall: false,
+        bottomWall: false,
+        leftWall: false,
+        rightWall: false,
       },
-      lastForm: {},
       activated: false,
     }
   }
 
   handleChange = e => {
-    console.log(e.target.type);
     let val = e.target.type == "checkbox" ? e.target.checked : e.target.value
     this.setState({...this.state, form: {...this.state.form, [e.target.name]: val}});
   };
@@ -28,6 +27,16 @@ export default class GameMenu extends React.Component {
     e.preventDefault();
     this.props.onSubmit(this.state.form)
   };
+
+  componentDidMount() {
+    this.setState({...this.state, form: {...this.state.form, ...this.props.roomSettings}});
+  }
+
+  componentDidUpdate(prevProps) {
+    if (JSON.stringify(prevProps.roomSettings) != JSON.stringify(this.props.roomSettings)) {
+      this.setState({...this.state, form: {...this.state.form, ...this.props.roomSettings}});
+    }
+  }
 
   render() {
 
@@ -38,13 +47,6 @@ export default class GameMenu extends React.Component {
       <div className="gameMenu"
         onFocus={() => this.state.activated ? null : this.setState({...this.state, activated: true, form: {...this.state.form, worldWidth: this.props.state.width, worldHeight: this.props.state.height}})}
       >
-        {/*
-        <li>
-          {Object.keys(props.state).map(v => <ul key={v}>{v}: {props.state[v]}</ul>)}
-          <p>---</p>
-          {props.settings ? Object.keys(props.settings).map(v => <ul key={v}>{v}: {JSON.stringify(props.settings[v])}</ul>) : null}
-        </li>
-          */}
         <form onSubmit={handleSubmit}>
           <span>Settings</span>
           <label>Width
@@ -55,8 +57,15 @@ export default class GameMenu extends React.Component {
             <input type="number" min="10" max="1000" name="worldHeight"
             value={this.state.activated ? this.state.form.worldHeight : this.props.state.height} onChange={handleChange}/>
           </label>
-          <label>Walls <input type="checkbox" name="floor" checked={this.state.form.floor} onChange={handleChange}/></label>
-          <label>Floor <input type="checkbox" name="walls" checked={this.state.form.walls} onChange={handleChange}/></label>
+          <div>
+          <label>Walls:</label>
+          <div style={{justifyContent: "space-between"}}>
+            <label><input type="checkbox" name="topWall" checked={this.state.form.topWall} onChange={handleChange}/>Top</label>
+            <label><input type="checkbox" name="bottomWall" checked={this.state.form.bottomWall} onChange={handleChange}/>Bottom</label>
+            <label><input type="checkbox" name="leftWall" checked={this.state.form.leftWall} onChange={handleChange}/>Left</label>
+            <label><input type="checkbox" name="rightWall" checked={this.state.form.rightWall} onChange={handleChange}/>Right</label>
+          </div>
+          </div>
           <button>Save</button>
         </form>
       </div>
