@@ -82,7 +82,10 @@ export default class ExGameEngine extends GameEngine {
           });
         }
 
-        if (this.renderer) { this.renderer.sounds.projectileHit.play(); this.renderer.cameraShake += 5}
+        if (this.renderer) {
+          this.renderer.sounds.projectileHit.play();
+          projectile.explosionEmitter.playOnceAndDestroy();
+          this.renderer.cameraShake += 5}
         if (projectile) {this.removeObjectFromWorld(projectile);}
       }
 

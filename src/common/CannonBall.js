@@ -1,11 +1,14 @@
 import { BaseTypes, DynamicObject, Renderer } from 'lance-gg';
-export default class CannonBall extends DynamicObject {
+import ExplosionEmitterConfig from './ProjectileExplosionEmitter';
+let PixiParticles;
 
+export default class CannonBall extends DynamicObject {
   constructor(gameEngine, options, props){
     super(gameEngine, options, props);
     this.damage = 1;
     this.width = 5;
     this.width = 5;
+    if (Renderer) PixiParticles = require('pixi-particles');
   }
 
   static get bending() {
@@ -22,7 +25,8 @@ export default class CannonBall extends DynamicObject {
   }
 
   draw() {
-    this.sprite.position.set(this.position.x, this.position.y);
+    this.sprite.position.set(0, 0);
+    this.container.position.set(this.position.x, this.position.y);
   }
 
   onAddToWorld(gameEngine) {
@@ -30,22 +34,36 @@ export default class CannonBall extends DynamicObject {
       let renderer = Renderer.getInstance();
       let PIXI = renderer.PIXI;
       this.sprite = new PIXI.Sprite(PIXI.Loader.shared.resources.orb.texture)
+      this.container = new PIXI.Container();
+      this.container.position.set(this.position.x, this.position.y);
+
       this.sprite.tint = 0x000000;
-      renderer.sprites[this.id] = this.sprite;
+      renderer.sprites[this.id] = this.container;
       this.sprite.anchor.set(0.5, 0.5);
       this.sprite.scale.set(0.5,0.5);
-      this.sprite.position.set(this.position.x, this.position.y);
-      renderer.container.addChild(this.sprite);
+      this.sprite.position.set(0, 0);
+      this.container.addChild(this.sprite);
+
+      renderer.container.addChild(this.container);
+
+      this.explosionEmitter = new PixiParticles.Emitter(
+        this.container,
+        [PIXI.Loader.shared.resources.triangle.texture],
+        ExplosionEmitterConfig
+      );
     }
   }
 
   onRemoveFromWorld(gameEngine) {
     if (Renderer) {
       let renderer = Renderer.getInstance();
-      if (renderer.sprites[this.id]) {
-        renderer.sprites[this.id].destroy();
-        delete renderer.sprites[this.id];
-      }
+      this.sprite.destroy()
+      this.gameEngine.timer.add(Math.round(this.explosionEmitter.maxLifetime*60), ()=>{
+          this.container.destroy();
+          if (renderer.sprites[this.id]) {
+            delete renderer.sprites[this.id];
+          }
+      }, this)
     }
   }
 
