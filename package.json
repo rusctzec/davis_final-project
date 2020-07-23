@@ -114,21 +114,6 @@
       "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|ts|tsx)$",
       "^.+\\.module\\.(css|sass|scss)$"
     ],
-    "modulePaths": [
-      "C:\\Users\\admin\\Desktop\\project3\\node_modules\\.pnpm\\react-scripts@3.4.1\\node_modules\\react-scripts\\bin\\react-scripts.js\\node_modules",
-      "C:\\Users\\admin\\Desktop\\project3\\node_modules\\.pnpm\\react-scripts@3.4.1\\node_modules\\react-scripts\\bin\\node_modules",
-      "C:\\Users\\admin\\Desktop\\project3\\node_modules\\.pnpm\\react-scripts@3.4.1\\node_modules\\react-scripts\\node_modules",
-      "C:\\Users\\admin\\Desktop\\project3\\node_modules\\.pnpm\\react-scripts@3.4.1\\node_modules",
-      "C:\\Users\\admin\\Desktop\\project3\\node_modules\\.pnpm\\node_modules",
-      "C:\\Users\\admin\\Desktop\\project3\\node_modules",
-      "C:\\Users\\admin\\Desktop\\node_modules",
-      "C:\\Users\\admin\\node_modules",
-      "C:\\Users\\node_modules",
-      "C:\\node_modules",
-      "C:\\Users\\admin\\Desktop\\project3\\node_modules\\react-scripts\\bin\\react-scripts.js\\node_modules",
-      "C:\\Users\\admin\\Desktop\\project3\\node_modules\\react-scripts\\bin\\node_modules",
-      "C:\\Users\\admin\\Desktop\\project3\\node_modules\\react-scripts\\node_modules"
-    ],
     "moduleNameMapper": {
       "^react-native$": "react-native-web",
       "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy"
