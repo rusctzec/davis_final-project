@@ -1,4 +1,6 @@
 import { ClientEngine, KeyboardControls } from "lance-gg";
+import { PNG } from 'pngjs'
+import TileMap from '../common/TileMap';
 import ExRenderer from "./ExRenderer";
 
 export default class ExClientEngine extends ClientEngine {
@@ -71,7 +73,7 @@ export default class ExClientEngine extends ClientEngine {
     if (update[roomName]) {
       if (!this.settings[roomName] || (this.settings[roomName] && (this.settings[roomName].worldWidth !== update[roomName].worldWidth || this.settings[roomName].worldHeight !== update[roomName].worldHeight))) {
         console.log("SETTINGS UPDATE - DIMENSIONS CHANGED");
-        this.gameEngine.tileMaps[roomName] = this.gameEngine.createTileMap(update[roomName].worldWidth, update[roomName].worldHeight, this.gameEngine.tileMaps[roomName])
+        this.gameEngine.tileMaps[roomName] = new TileMap(update[roomName].worldWidth, update[roomName].worldHeight, {type: "array", data: this.gameEngine.tileMaps[roomName]})
 
         this.receiveCanvasUpdate({x: 0, y:0, roomName: roomName, data: this.gameEngine.tileMaps[roomName]});
       }
@@ -89,7 +91,7 @@ export default class ExClientEngine extends ClientEngine {
     // generate tilemap for the room
     let roomName = update.to;
     if (this.settings[roomName]) {
-      this.gameEngine.tileMaps[roomName] = this.gameEngine.createTileMap(this.settings[roomName].worldWidth, this.settings[roomName].worldHeight);
+      this.gameEngine.tileMaps[roomName] = new TileMap(this.settings[roomName].worldWidth, this.settings[roomName].worldHeight);
     }
 
     this.gameCanvas.roomUpdate(update);
@@ -124,9 +126,7 @@ export default class ExClientEngine extends ClientEngine {
           let fillColor = val === -1 ? 0xffffff : this.canvas.state.color;
           let fill = val === -1 ? 0 : 1;
           // set tilemap right from here to avoid making the same loop again
-          let col = tileMap[i+x]
-          if (!col) return;
-          col[j+y] = fill;
+          tileMap.set(i+x, j+y, fill);
 
           if (fillColor !== this.canvas.inboundGraphics.fill.color || this.canvas.inboundGraphics.strokeCount > 1500) {
             this.canvas.renderToTexture();

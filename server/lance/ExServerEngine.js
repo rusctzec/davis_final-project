@@ -1,9 +1,10 @@
 import { ServerEngine } from 'lance-gg';
-import { PNG } from 'pngjs'
+import TileMap from '../../src/common/TileMap';
+import { PNG } from 'pngjs';
 import fs from 'fs';
 import path from 'path';
 import '../../src/utils/MathExtras';
-import {TileMap, Settings} from "../models";
+import * as Models from "../models";
 
 
 
@@ -62,7 +63,7 @@ export default class ExServerEngine extends ServerEngine {
       console.log("DIMENSIONS CHANGED", dimensionsChanged, newSettings.worldWidth, newSettings.worldHeight, settings.worldWidth, settings.worldHeight);
       this.settings[roomName] = {...settings, ...newSettings};
       if (dimensionsChanged) {
-        this.gameEngine.tileMaps[player.roomName] = this.gameEngine.createTileMap(this.settings[player.roomName].worldWidth, this.settings[player.roomName].worldHeight, this.gameEngine.tileMaps[player.roomName])
+        this.gameEngine.tileMaps[player.roomName] = new TileMap(this.settings[player.roomName].worldWidth, this.settings[player.roomName].worldHeight, {type: "array", data: this.gameEngine.tileMaps[player.roomName]})
 
         /*
         Object.keys(this.connectedPlayers).map(key => this.connectedPlayers[key]).forEach(p => {
@@ -72,7 +73,7 @@ export default class ExServerEngine extends ServerEngine {
 
       }
       // push updated settings to mongodb
-      Settings.findOneAndReplace({roomName: roomName}, this.settings[roomName], {upsert: true})
+      Models.Settings.findOneAndReplace({roomName: roomName}, this.settings[roomName], {upsert: true})
       .then(r => r);
 
       // distribute update to connected clients
@@ -89,7 +90,7 @@ export default class ExServerEngine extends ServerEngine {
       // make a thumbnail for the gallery
       this.generateImage(roomName);
       // save to the database
-      TileMap.findOneAndReplace({roomName: roomName}, {roomName: roomName, data: this.gameEngine.tileMaps[roomName]}, {upsert: true})
+      Models.TileMap.findOneAndReplace({roomName: roomName}, {roomName: roomName, data: this.gameEngine.tileMaps[roomName]}, {upsert: true})
       .then(r => r);
 
       this.assignPlayerToRoom(socket.playerId, roomName);
@@ -103,6 +104,7 @@ export default class ExServerEngine extends ServerEngine {
     super.onPlayerDisconnected(socketId, playerId)
     delete this.gameEngine.playerLocations[playerId];
 
+    if (!this.gameEngine.world.queryObjects) return;
     let playerObjects = this.gameEngine.world.queryObjects({playerId: playerId});
     playerObjects.forEach(obj => {
       this.gameEngine.removeObjectFromWorld(obj.id);
@@ -199,20 +201,19 @@ export default class ExServerEngine extends ServerEngine {
     this.settings[roomName] = Object.assign(this.getDefaultSettings(), this.settings[roomName], settings);
     this.settings[roomName].roomName = roomName;
 
-    Settings.findOneAndReplace({roomName: roomName}, this.settings[roomName], {upsert: true});
+    Models.Settings.findOneAndReplace({roomName: roomName}, this.settings[roomName], {upsert: true});
 
     // generate tilemap for the room if there is none in place
-    this.gameEngine.tileMaps[roomName] = this.gameEngine.tileMaps[roomName] || this.gameEngine.createTileMap(this.settings[roomName].worldWidth, this.settings[roomName].worldHeight);
+    this.gameEngine.tileMaps[roomName] = this.gameEngine.tileMaps[roomName] || new TileMap(this.settings[roomName].worldWidth, this.settings[roomName].worldHeight);
     this.settings[roomName].worldWidth = this.gameEngine.tileMaps[roomName].length;
     this.settings[roomName].worldHeight = this.gameEngine.tileMaps[roomName][0].length;
   }
 
   start() {
-
     // load existing settings and tilemaps into memory
     (async () => {
-      let settingsDocuments = await Settings.find();
-      let tileMapDocuments = await TileMap.find();
+      let settingsDocuments = await Models.Settings.find();
+      let tileMapDocuments = await Models.TileMap.find();
 
       if (!this.settings) retrievedTileMap.settings;
 
@@ -230,7 +231,7 @@ export default class ExServerEngine extends ServerEngine {
         let worldWidth = retrievedTileMap.data.length;
         let worldHeight = retrievedTileMap.data[0].length;
         this.settings[retrievedTileMap.roomName] = {worldHeight, worldWidth};
-        this.gameEngine.tileMaps[retrievedTileMap.roomName] = this.gameEngine.addTileMapMethods(retrievedTileMap.data);
+        this.gameEngine.tileMaps[retrievedTileMap.roomName] = new TileMap(worldWidth, worldHeight, {type: "array", data: retrievedTileMap.data});
       }
 
       super.start();

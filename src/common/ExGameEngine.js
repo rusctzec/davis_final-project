@@ -1,4 +1,5 @@
 import { TwoVector, GameEngine, SimplePhysicsEngine, Lib} from 'lance-gg';
+import TileMap from './TileMap';
 import PlayerCharacter from './PlayerCharacter';
 import CannonBall from './CannonBall';
 
@@ -242,6 +243,7 @@ export default class ExGameEngine extends GameEngine {
 
   }
 
+  // method to find the tilemap an update is destined for and apply it
   updateTileMap(update) {
     // if there is no update.roomName it must be coming from the player itself so just use the player's room
     let roomName = update.roomName || this.playerLocations[this.playerId];
@@ -252,7 +254,17 @@ export default class ExGameEngine extends GameEngine {
     if (!tileMap) {
       return;
     }
+    // attempt to determine update type if not provided
+    update.type = update.type ||
+      (update.size ? "rect"
+      :
+      update.data && update.data[0] instanceof Array ? "array"
+      : 
+      null);
 
+    tileMap.update(update);
+
+    return
     // (too lazy to fool-proof method right now)
     try {
 
@@ -307,48 +319,6 @@ export default class ExGameEngine extends GameEngine {
     cannonBall.inputId = inputId;
     this.addObjectToWorld(cannonBall);
     return cannonBall;
-  }
-
-  // i should have a constructor for tilemaps at this point this is not good
-  addTileMapMethods(tileMap) {
-    if (!tileMap) return;
-    tileMap.get = tileMap.get || ((x,y) => {
-      let col = tileMap[x];
-      return (col ? col[y] : undefined);
-    })
-    tileMap.set = tileMap.set || ((x,y,int) => {
-      if (int == 0) return;
-      let col = tileMap[x];
-      if (col && col[y] != undefined) col[y] = (int == -1 ? 0 : int);
-    })
-
-    return tileMap;
-  }
-
-  // try to later implement this so that existingData can be used to plug the old tilemap data into the new one
-  createTileMap(width, height, existingData) {
-    let tileMap = Array(width);
-    for (let i = 0; i < tileMap.length; i++) {
-      tileMap[i] = Array(height).fill(0);
-    }
-
-    this.addTileMapMethods(tileMap);
-    this.addTileMapMethods(existingData);
-
-    // fill in data from existing tilemap
-    if (existingData && existingData[0]) {
-      console.log("PLANTING EXISTING DATA");
-      let width = existingData.length;
-      let height = existingData.length;
-      for (let x = 0; x < width; x++) {
-        for (let y = 0; y < height; y++) {
-          tileMap.set(x, y, existingData.get(x, y));
-        }
-      }
-    }
-
-    console.log("createTileMap", width, height, tileMap.length, tileMap[0].length)
-    return tileMap;
   }
 
   start() {
