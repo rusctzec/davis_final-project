@@ -86,8 +86,12 @@ app.post("/api/signup", (req, res) => {
     req.body.password,
     (err, user) => {
       console.log("User.register callback...", err, user);
+      // 1 or more error messages may be contained in `err.errors` so it is neccesarry to collect them and send them to the user if they exist
       if (err) {
-        return res.status(403).json({error: err.message});
+        let msg = Object.keys(err.errors || {}).reduce((acc, cur) => {
+          return acc + "\n" + (err.errors[cur].reason || err.errors[cur].message)
+        }, "").trim();
+        return res.status(403).json({error: msg || err.message});
       }
       passport.authenticate('local')(req, res, () => {
         res.status(200).json({});

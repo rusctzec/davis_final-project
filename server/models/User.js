@@ -14,6 +14,12 @@ let userSchema = new mongoose.Schema({
     type: String,
     unique: true,
     required: true,
+    validate: {
+      validator: function(v) {
+        return /^[a-zA-Z0-9_-]+$/.test(v)
+      },
+      message: "Username must only contain alphanumeric characters, dashes, or underscores"
+    }
   },
   email: {
     type: String,
