@@ -31,6 +31,7 @@ const ToolBox = (props) => {
       img="/assets/images/cannon.svg"
       onClick={() => props.dispatch(props.tools.cannon)}
       active={props.state.active === props.tools.cannon}
+      visible={props.state.gameMode}
       name="Cannon [C]"/>
       <ToolBoxItem
       onClick={props.toggleGameMode}

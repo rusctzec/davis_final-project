@@ -28,6 +28,7 @@ const ToolBoxItem = (props) => {
       onMouseMove={e => e.stopPropagation()}
       draggable="false"
       active={String(props.active)}
+      style={{display: (props.visible ?? true) ? 'initial' : 'none' }}
     >
       <img src={props.img} alt={props.name}/>
       {props.value ? <input type="number" min="1" max="10" value={props.value} onChange={props.onChange}></input> : null}
