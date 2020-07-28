@@ -5,10 +5,12 @@ let userSchema = new mongoose.Schema({
   registeredOn: {
     type: Date,
     default: new Date(),
+    required: true,
   },
   lastLoggedIn: {
     type: Date,
     default: new Date(),
+    required: true,
   },
   username: {
     type: String,

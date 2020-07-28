@@ -5,6 +5,7 @@ import Gallery from './components/Gallery';
 import Home from './components/Home';
 import NavBar from './components/NavBar';
 import Login from './components/Login';
+import Profile from './components/Profile';
 import NotFound from './components/NotFound';
 import { InputProvider } from './utils/InputStore';
 import { AuthProvider } from './utils/AuthContext';
@@ -27,6 +28,7 @@ function App() {
             <Login signup={true}/>
           }/>
           <Route exact={true} path="/" component={Home}/>
+          <Route exact={true} path="/profile" component={Profile}/>
           <Route component={NotFound}/>
         </Switch>
       </InputProvider>

@@ -2,10 +2,10 @@ nav {
   top: 0px;
   left: 0px;
   background-color: var(--negative-bg-color);
-  height: 60px;
+  height: 70px;
   width: 100vw;
   font-size: 25px;
-  line-height: 40px;
+  line-height: 60px;
   max-height: 10vh;
   border-bottom: 4px solid #404040;
 }
@@ -27,6 +27,10 @@ nav {
 
 nav * {
   margin: 10px;
+}
+
+nav span {
+  margin: 0;
 }
 
 nav a {

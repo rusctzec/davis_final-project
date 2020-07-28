@@ -102,7 +102,10 @@ app.post("/api/signup", (req, res) => {
 });
 
 app.get("/api/logout", function(req, res) {
-  req.logout();
+  if (req.user) {
+    console.log(req.user.username, "logged out");
+    req.logout();
+  }
   res.status(200).json({});
 });
 

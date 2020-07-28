@@ -15,7 +15,7 @@ export default class Login extends React.Component {
   render() {
     return (
       <div className="loginContainer">
-        <form className="loginForm" onSubmit={this.handleSubmit.bind(this)}>
+        <form className="boxContainer" onSubmit={this.handleSubmit.bind(this)}>
           <h1>{this.props.signup ? 'Signup' : 'Login'}</h1>
           <label>Username: <input required name="username" type="text" onChange={e => this.setState({...this.state, [e.target.name]: e.target.value})}/></label>
           <label>Password: <input required name="password" type="password" onChange={e => this.setState({...this.state, [e.target.name]: e.target.value})}/></label>
@@ -28,6 +28,7 @@ export default class Login extends React.Component {
 
   handleSubmit(e) {
     e.preventDefault();
+    this.setState({...this.state, response: ""});
     let url = `/api/${this.props.signup ? 'signup' : 'login'}`;
 
     fetch(url, {
@@ -40,7 +41,7 @@ export default class Login extends React.Component {
     })
     .then(r => {
       console.log(r.status);
-      if (r.status == 200) this.props.history.push("/gallery");
+      if (r.status == 200) {window.location.href = "/gallery"}
       // handle server errors
       if (r.status >= 500) {
         this.setState({...this.state, response: "Server error."});

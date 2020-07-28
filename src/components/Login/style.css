@@ -1,5 +1,5 @@
 
-form.loginForm {
+.boxContainer {
   display: flex;
   flex-flow: column nowrap;
   border: solid 1px lightgrey;
@@ -12,15 +12,15 @@ form.loginForm {
   min-width: 250px;
 }
 
-form.loginForm label {
+form.boxContainer label {
   display: block;
 }
 
-form.loginForm * {
+form.boxContainer * {
   margin: 10px;
 }
 
-form.loginForm button {
+form.boxContainer button {
   width: 100%;
   align-self: center;
   justify-self: end;
