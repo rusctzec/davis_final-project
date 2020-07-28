@@ -49,7 +49,20 @@ export default class ExClientEngine extends ClientEngine {
   connect(options) {
     return super.connect(options).then(() => {
       this.socket.on("canvasUpdate", update => {
-        this.receiveCanvasUpdate(update);
+        // preprocess png info
+        if (update.type == "png") {
+          console.log("PNG ALERT PNG ALERT", update);
+          new PNG({filterType: 4}).parse(update.data, (error, data) => {
+            if (!error) {
+              let arrayData = TileMap.decodePng(data);
+              update.data = arrayData;
+              update.type = "array";
+              this.receiveCanvasUpdate(update);
+            }
+          });
+        } else {
+          this.receiveCanvasUpdate(update);
+        }
       });
       this.socket.on("settingsUpdate", update => {
         this.receiveSettingsUpdate(update);

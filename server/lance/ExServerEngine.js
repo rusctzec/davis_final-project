@@ -64,13 +64,6 @@ export default class ExServerEngine extends ServerEngine {
       this.settings[roomName] = {...settings, ...newSettings};
       if (dimensionsChanged) {
         this.gameEngine.tileMaps[player.roomName] = new TileMap(this.settings[player.roomName].worldWidth, this.settings[player.roomName].worldHeight, {type: "array", data: this.gameEngine.tileMaps[player.roomName]})
-
-        /*
-        Object.keys(this.connectedPlayers).map(key => this.connectedPlayers[key]).forEach(p => {
-          if (p.roomName == roomName) p.socket.emit('canvasUpdate', {x: 0, y: 0, roomName: roomName, data: this.gameEngine.tileMaps[roomName]});
-        });
-        */
-
       }
       // push updated settings to mongodb
       Models.Settings.findOneAndReplace({roomName: roomName}, this.settings[roomName], {upsert: true})
@@ -88,15 +81,26 @@ export default class ExServerEngine extends ServerEngine {
         this.createRoom(roomName);
       }
       // make a thumbnail for the gallery
+      console.log("generating thumbnail")
       this.generateImage(roomName);
-      // save to the database
-      Models.TileMap.findOneAndReplace({roomName: roomName}, {roomName: roomName, data: this.gameEngine.tileMaps[roomName]}, {upsert: true})
-      .then(r => r);
 
+      // convert canvas to png byte buffer
+      let png = this.gameEngine.tileMaps[roomName].toPng();
+      let buffer = PNG.sync.write(png);
+
+      // save png to the database
+      console.log("saving tilemap to mongo")
+      Models.TileMap.findOneAndReplace({roomName: roomName}, {roomName: roomName, data: buffer}, {upsert: true})
+      .then(r => {console.log("saved!"); return r;});
+
+      console.log("assigning player to room")
       this.assignPlayerToRoom(socket.playerId, roomName);
+      console.log("emitting settingsupdate")
       socket.emit("settingsUpdate", this.gameEngine.settings);
-      // send canvas state over to players when they join a room
-      socket.emit("canvasUpdate", {x: 0, y: 0, roomName: roomName, data: this.gameEngine.tileMaps[roomName]})
+
+      // send canvas state over to players as a png when they join a room
+      socket.emit("canvasUpdate", {x: 0, y: 0, roomName: roomName, data: this.gameEngine.tileMaps[roomName]});
+      socket.emit("canvasUpdate", {type: "png", x: 0, y: 0, roomName: roomName, data: buffer})
     });
   }
 
@@ -119,6 +123,7 @@ export default class ExServerEngine extends ServerEngine {
       name: playerId == undefined ? "" : `player ${playerId}`,
       roomName: roomName,
     };
+
     this.gameEngine.updateTileMap(update2);
 
     // emit only to sockets in the room that the canvas update happened
@@ -183,8 +188,10 @@ export default class ExServerEngine extends ServerEngine {
     return {
       worldWidth: 150,
       worldHeight: 150,
-      walls: false,
-      floor: false,
+      topWall: false,
+      bottomWall: false,
+      leftWall: false,
+      rightWall: false,
       drawers: [],
       admins: [],
       allow: [],
@@ -227,14 +234,20 @@ export default class ExServerEngine extends ServerEngine {
       }
       for (let item of tileMapDocuments) {
         let retrievedTileMap = item.toObject();
-        if (!retrievedTileMap.data[0]) continue;
-        let worldWidth = retrievedTileMap.data.length;
-        let worldHeight = retrievedTileMap.data[0].length;
-        this.settings[retrievedTileMap.roomName] = {worldHeight, worldWidth};
-        this.gameEngine.tileMaps[retrievedTileMap.roomName] = new TileMap(worldWidth, worldHeight, {type: "array", data: retrievedTileMap.data});
+        new PNG({filterType: 4}).parse(item.data, (error, data) => {
+          if (error) return;
+          retrievedTileMap.data = TileMap.decodePng(data);
+
+          if (!retrievedTileMap.data[0]) return;
+          let worldWidth = retrievedTileMap.data.length;
+          let worldHeight = retrievedTileMap.data[0].length;
+          this.settings[retrievedTileMap.roomName] = {worldHeight, worldWidth};
+          this.gameEngine.tileMaps[retrievedTileMap.roomName] = new TileMap(worldWidth, worldHeight, {type: "array", data: retrievedTileMap.data});
+        });
       }
 
       super.start();
+      console.log("Server engine started")
       for (const setting of existingSettings) {
         if (setting.roomName) this.createRoom(setting.roomName, setting);
       }
