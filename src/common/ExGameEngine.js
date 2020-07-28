@@ -259,40 +259,10 @@ export default class ExGameEngine extends GameEngine {
       (update.size ? "rect"
       :
       update.data && update.data[0] instanceof Array ? "array"
-      : 
+      :
       null);
 
     tileMap.update(update);
-
-    return
-    // (too lazy to fool-proof method right now)
-    try {
-
-    // fill by rect
-    let {x, y, data, size, fill} = update;
-    if (x == null || y == null) return;
-    if (size) {
-      for (let i = x; i < x+size && i < settings.worldWidth; i++) {
-        for (let j = y; j < y+size && j < settings.worldHeight; j++) {
-          if (i < 0 || j < 0) continue;
-          let col = tileMap[i];
-          if (!col) console.log("COL IS NULL", tileMap.length);
-          col[j] = fill===-1?0:1;
-        }
-      }
-    // fill by 2d array
-    } else if (data) {
-      let lenX = data.length; if (lenX === 0) return;
-      let lenY = data[0].length;
-      for (let i=0; i < lenX && i < settings.worldWidth; i++) {
-        for (let j=0; j < lenY && j < settings.worldHeight; j++) {
-          let val = data[i][j]; if (val === 0 || i+x < 0 || j+y < 0 || i+x >= settings.worldWidth || j+y >= settings.worldHeight) continue;
-          if (val === -1) tileMap[x+i][y+j] = 0;
-          else tileMap[x+i][y+j] = 1;
-        }
-      }
-    }
-    } catch (e) {console.log("TILEMAP ERROR:", e)}
   }
 
   spawnPlayer(playerId) {

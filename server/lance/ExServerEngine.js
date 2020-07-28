@@ -116,23 +116,37 @@ export default class ExServerEngine extends ServerEngine {
   }
 
   handleCanvasUpdate(update, playerId) {
+    let socketsDict = this.io.sockets.sockets;
+    let sockets = Object.keys(socketsDict).map((i) => {
+      return socketsDict[i];
+    });
+    let playerSocket = this.socketFromPlayerId(playerId);
+
     let roomName = this.gameEngine.playerLocations[playerId] || update.roomName;
     // remove unneccesary data and add id
     let update2 = {x: update.x, y: update.y, size: update.size, fill: update.fill, data: update.data,
       id: playerId,
-      name: playerId == undefined ? "" : `player ${playerId}`,
+      name: playerSocket && playerSocket.request.user.username || (playerId == undefined ? "" : `guest ${playerId}`),
       roomName: roomName,
     };
 
     this.gameEngine.updateTileMap(update2);
 
     // emit only to sockets in the room that the canvas update happened
-    let sockets = this.io.sockets.sockets;
-    for (let i of Object.keys(sockets)) {
-      if (this.gameEngine.playerLocations[sockets[i].playerId] == roomName) {
-        sockets[i].emit("canvasUpdate", update2);
+
+    for (let socket of sockets) {
+      if (this.gameEngine.playerLocations[socket.playerId] == roomName) {
+        socket.emit("canvasUpdate", update2);
       }
     }
+  }
+
+  socketFromPlayerId(playerId) {
+    let sockets = this.io.sockets.sockets;
+    let socketId = Object.keys(sockets).find((i) => {
+      return sockets[i].playerId == playerId;
+    });
+    return sockets[socketId];
   }
 
   // return info about the rooms and the amount of players in each (for the gallery display page to show)

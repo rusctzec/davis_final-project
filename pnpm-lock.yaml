@@ -11,6 +11,8 @@ dependencies:
   bcryptjs: 2.4.3
   camelcase: 5.3.1
   case-sensitive-paths-webpack-plugin: 2.3.0
+  connect-mongo: 3.2.0
+  cookie-parser: 1.4.5
   cross-env: 7.0.2
   css-loader: 3.4.2_webpack@4.43.0
   dotenv: 8.2.0
@@ -33,6 +35,7 @@ dependencies:
   passport: 0.4.1
   passport-local: 1.0.0
   passport-local-mongoose: 6.0.1
+  passport.socketio: 3.7.0
   pixi-particles: 4.2.1_pixi.js@5.3.0
   pixi.js: 5.3.0
   pngjs: 5.0.0
@@ -3618,6 +3621,12 @@ packages:
       node: '>=0.8'
     resolution:
       integrity: sha512-e54B99q/OUoH64zYYRf3HBP5z24G38h5D3qXu23JGRoigpX5Ss4r9ZnDk3g0Z8uQC2x2lPaJ+UlWBc1ZWBWdLg==
+  /connect-mongo/3.2.0:
+    dependencies:
+      mongodb: 3.5.9
+    dev: false
+    resolution:
+      integrity: sha512-0Mx88079Z20CG909wCFlR3UxhMYGg6Ibn1hkIje1hwsqOLWtL9HJV+XD0DAjUvQScK6WqY/FA8tSVQM9rR64Rw==
   /console-browserify/1.2.0:
     resolution:
       integrity: sha512-ZMkYO/LkF17QvCPqM0gxw8yUzigAOZOSWSHg91FH6orS7vcEj5dVZTidN2fQ14yBSdg97RqhSNwLUXInd52OTA==
@@ -3647,6 +3656,15 @@ packages:
       safe-buffer: 5.1.2
     resolution:
       integrity: sha512-4FJkXzKXEDB1snCFZlLP4gpC3JILicCpGbzG9f9G7tGqGCzETQ2hWPrcinA9oU4wtf2biUaEH5065UnMeR33oA==
+  /cookie-parser/1.4.5:
+    dependencies:
+      cookie: 0.4.0
+      cookie-signature: 1.0.6
+    dev: false
+    engines:
+      node: '>= 0.8.0'
+    resolution:
+      integrity: sha512-f13bPUj/gG/5mDr+xLmSxxDsB9DQiTIfhJS/sqjrmfAWiAN+x2O4i/XguTL9yDZ+/IFDanJ+5x7hC4CXT9Tdzw==
   /cookie-signature/1.0.6:
     dev: false
     resolution:
@@ -8472,6 +8490,12 @@ packages:
       node: '>= 0.4.0'
     resolution:
       integrity: sha1-tVOaqPwiWj0a0XlHbd8ja0QPUuQ=
+  /passport.socketio/3.7.0:
+    dependencies:
+      xtend: 4.0.2
+    dev: false
+    resolution:
+      integrity: sha1-LuX6/paV1CgcjN3T/pdezRjmcm4=
   /passport/0.4.1:
     dependencies:
       passport-strategy: 1.0.0
@@ -12341,6 +12365,8 @@ specifiers:
   camelcase: ^5.3.1
   case-sensitive-paths-webpack-plugin: 2.3.0
   concurrently: ^5.2.0
+  connect-mongo: ^3.2.0
+  cookie-parser: ^1.4.5
   cross-env: ^7.0.2
   css-loader: 3.4.2
   dotenv: 8.2.0
@@ -12364,6 +12390,7 @@ specifiers:
   passport: ^0.4.1
   passport-local: ^1.0.0
   passport-local-mongoose: ^6.0.1
+  passport.socketio: ^3.7.0
   pixi-particles: ^4.2.1
   pixi.js: ^5.2.4
   pngjs: ^5.0.0

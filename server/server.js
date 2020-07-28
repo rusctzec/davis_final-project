@@ -1,8 +1,16 @@
 import express from "express";
 import expressSession from "express-session";
+import cookieParser from "cookie-parser";
 import socketIO from "socket.io"
 import path from "path";
 import passport from './passport';
+import passportSocketIo from 'passport.socketio';
+import connectMongo from 'connect-mongo';
+import mongoose from 'mongoose';
+
+
+const MongoStore = connectMongo(expressSession);
+const mongoStore = new MongoStore({ mongooseConnection: mongoose.connection});
 
 // Game Server
 import ExServerEngine from "./lance/ExServerEngine";
@@ -14,7 +22,13 @@ const app = express();
 
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
-app.use(expressSession({secret: 'express-session-secret', resave: false, saveUninitialized: false}))
+app.use(expressSession({
+  key: 'express.sid',
+  secret: 'express-session-secret',
+  store: mongoStore,
+  resave: false,
+  saveUninitialized: false,
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -25,6 +39,16 @@ const requestHandler = app.listen({ port: PORT }, () =>
 );
 
 const io = socketIO(requestHandler);
+
+io.use(passportSocketIo.authorize({
+  cookieParser: cookieParser,
+  key: 'express.sid',
+  secret: 'express-session-secret',
+  store: mongoStore,
+  success: (data, accept) => accept(), // accept connections whether authorized or not
+  fail: (data, message, error, accept) => accept(),
+}));
+
 
 // Game Instances
 const gameEngine = new ExGameEngine();
