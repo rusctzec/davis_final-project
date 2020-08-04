@@ -1,6 +1,15 @@
+
 # Malleary
 
 A multiplayer drawing game. Built with React, Lance.gg, and MongoDB.
+
+## Table of Contents
+
+* [Gameplay](#gameplay)
+* [Development](#development)
+  * [Prerequisites](#prerequisites)
+  * [Instructions](#instructions)
+* [Contact](#contact)
 
 ## Gameplay
 
@@ -9,8 +18,20 @@ The utility buttons on the canvas screen allow the player to switch tools, addin
 
 <img src="https://github.com/rusctzec/portfolio/blob/master/public/assets/media/malleary-demo.gif?raw=true">
 
+
+
 ## Development
 
+### Prerequisites
+  - [Node.js](https://nodejs.org/)
+  - [MongoDB Server](https://www.mongodb.com/download)
+
+### Instructions
 Install dependencies with `npm i`, launch local development server with `npm run dev`. \
 Run `npm run build` to build and `npm run start` to test your build. \
-Development requires MongoDB server to be installed locally.
+
+## Contact
+
+Contact information at [henrybi.shop](http://henrybi.shop)
+
+[Visit deployed project here](malleary.herokuapp.com)
