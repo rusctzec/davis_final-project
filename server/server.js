@@ -15,7 +15,7 @@ const mongoStore = new MongoStore({ mongooseConnection: mongoose.connection});
 // Game Server
 import ExServerEngine from "./lance/ExServerEngine";
 import ExGameEngine from "../src/common/ExGameEngine";
-import { User } from "./models";
+import * as db from "./models";
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -67,7 +67,19 @@ app.get("/api/games", (req, res) => {
 });
 
 app.get("/thumbnails/:roomName", (req, res) => {
-  res.sendFile(path.join(__dirname, `/tmp/rooms/${req.params.roomName}`), (err => void err));
+  let roomName = '/'+req.params.roomName;
+  db.TileMap.findOne({roomName: roomName})
+  .then(r => {
+    let data = r.toObject().data.buffer;
+    if (data[0] == 0x00) {res.status(500).send(); return;} // buffer shouldnt be sent (png magic number should begin with 0x89)
+    res.set('Content-Type', 'image/png');
+    res.write(data, 'binary');
+    res.end(null, 'binary');
+  })
+  .catch(err => {
+    res.status(500).send();
+    console.log(err);
+  });
 });
 
 app.post("/api/login",
@@ -81,8 +93,8 @@ app.post("/api/login",
 app.post("/api/signup", (req, res) => {
 
   // using passport-local-mongoose
-  User.register(
-    new User({ username: req.body.username }),
+  db.User.register(
+    new db.User({ username: req.body.username }),
     req.body.password,
     (err, user) => {
       console.log("User.register callback...", err, user);

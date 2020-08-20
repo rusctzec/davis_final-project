@@ -80,9 +80,6 @@ export default class ExServerEngine extends ServerEngine {
       if (!this.rooms[roomName]) {
         this.createRoom(roomName);
       }
-      // make a thumbnail for the gallery
-      console.log("generating thumbnail")
-      this.generateImage(roomName);
 
       // convert canvas to png byte buffer
       let png = this.gameEngine.tileMaps[roomName].toPng();
@@ -168,33 +165,6 @@ export default class ExServerEngine extends ServerEngine {
       });
     }
     return arr;
-  }
-
-  // converts tilemap data to a PNG
-  generateImage(roomName) {
-    let tileMap = this.gameEngine.tileMaps[roomName];
-    if (!tileMap) return;
-
-    var newFile = new PNG({ width: this.settings[roomName].worldWidth, height: this.settings[roomName].worldHeight });
-    for (let y = 0; y < newFile.height; y++) {
-      for (let x = 0; x < newFile.width; x++) {
-        let i = (newFile.width * y + x ) << 2;
-        let color = tileMap.get(x, y) ? 0x00 : 0xff;
-        newFile.data[i] = color;
-        newFile.data[i + 1] = color;
-        newFile.data[i + 2] = color;
-        newFile.data[i + 3] = 0xff;
-      }
-    }
-
-    // trim up to server directory because __dirname is at different paths within it depending on if this is a dev or production build
-    // (e.g. malleary/server/lance -> malleary/server)
-    const thumbnailPath = __dirname.replace(/(?!.*?server)[^server].*$/, "")
-    // these will be served through an express route
-    fs.mkdir(path.join(thumbnailPath, 'tmp/rooms'), {recursive: true}, err => {
-      if (err) { console.error(err); return;}
-      newFile.pack().pipe(fs.createWriteStream(path.join(thumbnailPath, `tmp/rooms${roomName}.png`)));
-    });
   }
 
   // generates a settings object with default settings

@@ -23,7 +23,7 @@ const GalleryItem = props => {
           width: width,
           height: height,
           transform: `scale(${scale}) translate(-50%, -50%) `,
-          backgroundImage: `url('/thumbnails${data.name}.png')`}}/>
+          backgroundImage: `url('/thumbnails${data.name}')`}}/>
       </div>
       <div className="galleryItemDesc">
         <div>{data.name}</div>
