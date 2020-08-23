@@ -5,6 +5,7 @@ import {InputProvider, InputContext} from '../../utils/InputStore';
 import Overlay from '../Overlay';
 import ToolBox from '../ToolBox';
 import GameMenu from '../GameMenu';
+import CornerWatermark from '../CornerWatermark';
 import clientEngine from '../../lance';
 
 window.PIXI = PIXI; // for testing purposes;
@@ -12,15 +13,12 @@ window.PIXI = PIXI; // for testing purposes;
 // tools enum
 const TOOLS = Object.freeze({"brush":0, "eraser": 1, "panning": 2, "cannon":3});
 
-// this whole project is horribly suited for react at least to the extent i can get all these technologies to function together in the timeframe i need to have it completed by
-// i'm sorry for not using react correctly ok the project requirements have forced my hand
 class GameCanvas extends React.Component {
 
   static contextType = InputContext
 
   constructor(props) {
     super(props);
-
     // this.state contains per-client and current room settings | clientEngine.settings contains settings for each room on the server
     this.state = {
       brushSize: 2,
@@ -36,7 +34,9 @@ class GameCanvas extends React.Component {
       // controlled by room:
       width: 50,
       height: 50,
-      roomSettings: {}
+      roomSettings: {},
+      playerList: [],
+      menuFocused: false,
     };
 
     this.canvasRef = React.createRef();
@@ -48,19 +48,37 @@ class GameCanvas extends React.Component {
 
   }
 
+  get drawingDisabled() {
+    let username = this.props.auth.user.username;
+    let settings = this.state.roomSettings;
+
+    return (settings.restrictDrawing &&
+      !settings.drawers.includes(username) &&
+      !settings.admins.includes(username) &&
+      settings.owner != username);
+  }
+
   render() {
     return (
       <InputProvider>
-        <GameMenu settings={clientEngine.settings} roomSettings={this.state.roomSettings} state={this.state} onSubmit={update => clientEngine.sendSettingsUpdate(update)}/>
+        <GameMenu auth={this.props.auth} settings={clientEngine.settings} roomSettings={this.state.roomSettings} state={this.state} onSubmit={update => clientEngine.sendSettingsUpdate(update)}
+        onFocus={() => {clientEngine.controls.boundKeys = {}; this.setState({...this.state, menuFocused: true})}}
+        onBlur={() => {if(this.state.gameMode) {clientEngine.controls.boundKeys = clientEngine.boundKeys;} this.setState({...this.state, menuFocused: false});}}
+        />
         <canvas ref={this.canvasRef} width={this.state.width} height={this.state.height}/>
         <ToolBox
           state={this.state}
           tools={TOOLS}
+          auth={this.props.auth}
+          drawingDisabled={this.drawingDisabled}
           dispatch={(newTool) => this.changeActive(newTool, true)}
           onChange={newState => this.setState({...this.state, ...newState})}
           toggleGameMode={(val) => this.toggleGameMode(val)}
         />
         <Overlay visible={!this.state.ready} buttons={this.state.overlay != "connecting"} text={this.state.overlayText}/>
+        {
+            this.props.auth.user.username ? <CornerWatermark corner="bottomright">Logged in as {this.props.auth.user.username}</CornerWatermark> : <CornerWatermark corner="bottomright">Not logged in</CornerWatermark>
+        }
       </InputProvider>
     );
   }
@@ -169,28 +187,27 @@ class GameCanvas extends React.Component {
     // keybindings
     window.addEventListener('keydown', e => {
       if (e.repeat) return;
+      if (this.state.menuFocused) return;
 
       if (e.code === "Space") {
         this.changeActive(TOOLS.panning);
       }
       // swapping tools (clears graphics object and renders to texture every time color needs to change otherwise it doesn't work right)
       else if (e.code === "KeyE") {
+        if (this.drawingDisabled) return;
         let newTool = (this.state.tool === TOOLS.eraser ? TOOLS.brush : TOOLS.eraser);
         this.changeActive(newTool, true);
       }
       else if (e.code === "KeyB") {
+        if (this.drawingDisabled) return;
         this.changeActive(TOOLS.brush, true);
       }
       else if (e.code == "KeyG") {
         this.toggleGameMode();
       }
       else if (e.code == "KeyC") {
+        if (this.state.roomSettings.disableProjectiles) {return;}
         this.changeActive(TOOLS.cannon, true);
-      }
-      else if (e.code == "KeyR") {
-        if (!clientEngine.socket) return;
-        let newRoom = this.state.room == "/3" ? "/2" : "/3";
-        clientEngine.socket.emit("requestRoom", newRoom);
       }
       // changing brush or eraser size using number keys
       else if (/(Numpad|Digit)\d/.test(e.code)) {
@@ -217,10 +234,6 @@ class GameCanvas extends React.Component {
       this.canvasZoom(newScale, {x: relX, y: relY});
     });
 
-    window.addEventListener("unhandledrejection", e => {
-      this.setState({...this.state, ready: false, overlay: "disconnected", overlayText:"Disconnected"});
-    });
-
     window.addEventListener('mousemove', this.handleMouseMove.bind(this));
     window.addEventListener('click', this.handleMouseMove.bind(this));
     window.addEventListener('touchstart', e => {this.handleMouseMove(e)});
@@ -240,10 +253,14 @@ class GameCanvas extends React.Component {
     });
   }
 
+  setOverlayMessage(type, msg, cb) {
+    if (this.state.overlay == "error" && type == "disconnected") { return; }
+    this.setState({...this.state, ready: false, overlay: type, overlayText: msg}, cb);
+  }
+
   componentWillUnmount() {
     // lance doesn't provide the ability to destroy or restart the gameengine, so it's neccesary to perform a full page refresh to create a clean slate
     console.log("gameCanvas WILL UNMOUNT");
-    clientEngine.disconnect();
     window.location.reload();
   }
 
@@ -277,11 +294,18 @@ class GameCanvas extends React.Component {
       dimensionsChanged = true;
       console.log("DIMENSIONS CHANGED - ", this.state.room, "CANVAS RESET");
     }
+
+    // where applicable, convert array to csv-string for menu
+    let preRoomSettings = Object.assign({}, settings);
+    ["allow", "exclude", "admins", "drawers"]
+    .forEach(field => {
+      preRoomSettings[field] = preRoomSettings[field].join(", ");
+    });
     this.setState({
       ...this.state,
       width: settings.worldWidth,
       height: settings.worldHeight,
-      roomSettings: {...this.state.roomSettings, ...settings}
+      roomSettings: {...this.state.roomSettings, ...preRoomSettings}
     }, () => {
       if (dimensionsChanged) this.resetView();
     });
@@ -328,7 +352,8 @@ class GameCanvas extends React.Component {
   }
   // handle user's brush strokes
   makeStroke(x, y) {
-    if (this.state.room === "/lobby") return // dont allow drawing until a room other than lobby has been assigned
+    if (this.state.room === "/lobby") return; // dont allow drawing until a room other than lobby has been assigned
+    if (this.drawingDisabled) return; // can't draw if drawing is disabled
 
     this.strokeCount++;
     const size = (this.state.tool === TOOLS.eraser) ? this.state.eraserSize : this.state.brushSize;
@@ -361,6 +386,17 @@ class GameCanvas extends React.Component {
     this.setState({...this.state, active: newTool, tool: deep?newTool:this.state.tool})
   }
 
+  playerListUpdate(action, player) {
+    if (action == "joined") {
+      let newPlayerList = [...this.state.playerList];
+      if (!newPlayerList.every(v => v.playerId != player.playerId && (!v.username || v.username != player.username))) {return;}
+      newPlayerList.push(player);
+      this.setState({...this.state, playerList: newPlayerList})
+    } else if (action == "left") {
+      let newPlayerList = this.state.playerList.filter(v => v.playerId != player.playerId);
+      this.setState({...this.state, playerList: newPlayerList});
+    }
+  }
   // the function for rendering the graphics object to a rendertexture and then clearing it
   renderToTexture(override) { // (override allows an object to be temporarily inserted so that it gets captured in the render process)
     this.strokeCount = 0;

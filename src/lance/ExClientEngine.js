@@ -51,7 +51,6 @@ export default class ExClientEngine extends ClientEngine {
       this.socket.on("canvasUpdate", update => {
         // preprocess png info
         if (update.type == "png") {
-          console.log("PNG ALERT PNG ALERT", update);
           new PNG({filterType: 4}).parse(update.data, (error, data) => {
             if (!error) {
               let arrayData = TileMap.decodePng(data);
@@ -65,16 +64,44 @@ export default class ExClientEngine extends ClientEngine {
         }
       });
       this.socket.on("settingsUpdate", update => {
+        console.log(update);
         this.receiveSettingsUpdate(update);
       });
 
-      this.socket.emit("requestRoom", `/${this.gameCanvas.props.match.params.roomName}`);
+      this.socket.on("clientError", msg => {
+        this.gameCanvas.setOverlayMessage("error", msg, () => { this.socket.disconnect(); });
+      });
+
+      this.socket.on("disconnect", w => {
+        this.gameCanvas.setOverlayMessage("disconnected", "Disconnected");
+      });
+
+      this.socket.on("playerJoined", p => {
+        this.gameCanvas.playerListUpdate("joined", p);
+      });
+
+      this.socket.on("playerLeft", p => {
+        this.gameCanvas.playerListUpdate("left", p);
+      });
+
+      let wantsPrivateRoom = this.gameCanvas.props.location.search.includes("private=true");
+
+      this.socket.emit("requestRoom", {roomName: `/${this.gameCanvas.props.match.params.roomName}`, 'private': wantsPrivateRoom});
     });
   }
 
-  sendSettingsUpdate(update) {
+  sendSettingsUpdate(form) {
     if (!this.socket) return;
     // update given to this function should pertain to 1 room only
+
+    let update = Object.assign({}, form);
+    // perform the conversion from csv-string to array of usernames, for applicable settings
+    ["allow", "exclude", "admins", "drawers"]
+    .forEach(field => {
+      let value = update[field].replace(/\s/g, '').split(',');
+      value.length > 0 ? update[field] = value : update[field] = [];
+    });
+
     console.log("sendSettingsUpdate", update);
     this.socket.emit("settingsUpdate", update);
   }
@@ -92,7 +119,7 @@ export default class ExClientEngine extends ClientEngine {
       }
     }
 
-    this.settings = update;
+    this.settings = {...this.settings, ...update};
 
     this.gameEngine.settings = this.settings;
     // register neccesary updates to the canvas etc. if your room settings update

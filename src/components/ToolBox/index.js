@@ -13,6 +13,7 @@ const ToolBox = (props) => {
       onClick={() => props.dispatch(props.tools.brush)}
       active={props.state.active === props.tools.brush}
       value={props.state.brushSize}
+      visible={!props.drawingDisabled}
       name="Brush [B]"/>
       <ToolBoxItem
       className="numberInput"
@@ -21,6 +22,7 @@ const ToolBox = (props) => {
       onClick={() => props.dispatch(props.tools.eraser)}
       active={props.state.active === props.tools.eraser}
       value={props.state.eraserSize}
+      visible={!props.drawingDisabled}
       name="Eraser [E]"/>
       <ToolBoxItem
       img="/assets/images/hand.svg"
@@ -31,7 +33,7 @@ const ToolBox = (props) => {
       img="/assets/images/cannon.svg"
       onClick={() => props.dispatch(props.tools.cannon)}
       active={props.state.active === props.tools.cannon}
-      visible={props.state.gameMode}
+      visible={props.state.gameMode && !props.state.roomSettings.disableProjectiles}
       name="Cannon [C]"/>
       <ToolBoxItem
       onClick={props.toggleGameMode}

@@ -66,10 +66,15 @@ app.get("/api/games", (req, res) => {
   res.json(serverEngine.summarizeRooms());
 });
 
+app.get("/api/games/:roomName", (req, res) => {
+  res.json(serverEngine.summarizeRoom('/'+req.params.roomName));
+});
+
 app.get("/thumbnails/:roomName", (req, res) => {
-  let roomName = '/'+req.params.roomName;
+  let roomName = '/'+req.params.roomName.replace(/\.png$/, '');
   db.TileMap.findOne({roomName: roomName})
   .then(r => {
+    if (r == null) {res.status(404).send(); return;}
     let data = r.toObject().data.buffer;
     if (data[0] == 0x00) {res.status(500).send(); return;} // buffer shouldnt be sent (png magic number should begin with 0x89)
     res.set('Content-Type', 'image/png');

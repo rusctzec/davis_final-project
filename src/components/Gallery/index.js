@@ -21,7 +21,7 @@ export default class Gallery extends React.Component {
   render() {
     return (
       <div className="galleryContainer">
-        <form onSubmit={e => { e.preventDefault(); this.props.history.push("/game/"+this.state.query)}}>
+        <form onSubmit={e => { e.preventDefault(); this.props.history.push("/game/"+this.state.query+(this.state.private?'?private=true':''))}}>
           <div>Join or create a new game</div>
           <label>/</label><input type="text" spellCheck="false" value={this.state.query} onChange={e => {
             let str = e.target.value;
@@ -31,7 +31,7 @@ export default class Gallery extends React.Component {
             this.setState({...this.state, query: str})
           }}/>
           <button disabled={this.state.query.length < 1}>Go</button>
-          <label style={{display: 'block'}}>Private: <input type="checkbox"/></label>
+          {this.context.user.username ? <label style={{display: 'block'}}>Private: <input type="checkbox" onChange={e => this.setState({...this.state, private: e.target.checked})}/></label> : null}
         </form>
         <div className="gallery">
           {this.state.items.map((item, i) => (

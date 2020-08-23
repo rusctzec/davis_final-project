@@ -20,10 +20,6 @@ export default class ExServerEngine extends ServerEngine {
   onPlayerConnected(socket) {
     super.onPlayerConnected(socket);
 
-    // send canvas game settings for all rooms to new players
-    socket.emit("settingsUpdate", this.settings);
-
-
     socket.on("canvasUpdate", (update) => this.handleCanvasUpdate(update, socket.playerId));
 
     socket.on("requestCreation", () => {
@@ -47,16 +43,27 @@ export default class ExServerEngine extends ServerEngine {
 
     // incoming settings from clients are always for a single room and not a collection of all
     socket.on("settingsUpdate", newSettings => {
-      delete newSettings.roomName; // don't want the user to change the roomname on the settings and mess stuff up
-      // limit dimensions
-      newSettings.worldWidth = isNaN(newSettings.worldWidth) ? 10 : Math.max(10, Math.min(1000, newSettings.worldWidth));
-      newSettings.worldHeight = isNaN(newSettings.worldHeight) ? 10 : Math.max(10, Math.min(1000, newSettings.worldHeight));
+
+      let username = socket.request.user.username;
 
       // get roomname and existing settings
       let player = Object.keys(this.connectedPlayers).map(key => this.connectedPlayers[key]).find(p => p.socket.playerId == socket.playerId);
       if (!player.roomName) return;
       let roomName = player.roomName
       let settings = this.settings[roomName];
+
+      if (!username || !(username == settings.owner || settings.admins.includes(username))) {return;}
+      if (username != settings.owner) {
+        delete newSettings.admins; // only owner can assign admins
+        if (settings.owner) {
+          delete newSettings.owner; // owner can only be assigned by non-owners if there is no owner
+        }
+      }
+
+      delete newSettings.roomName; // don't want the user to change the roomname on the settings and mess stuff up
+      // limit dimensions
+      newSettings.worldWidth = isNaN(newSettings.worldWidth) ? 10 : Math.max(10, Math.min(1000, newSettings.worldWidth));
+      newSettings.worldHeight = isNaN(newSettings.worldHeight) ? 10 : Math.max(10, Math.min(1000, newSettings.worldHeight));
 
       // regenerate tileMap if dimensions changed
       let dimensionsChanged = (newSettings.worldWidth != settings.worldWidth || newSettings.worldHeight != settings.worldHeight);
@@ -69,16 +76,59 @@ export default class ExServerEngine extends ServerEngine {
       Models.Settings.findOneAndReplace({roomName: roomName}, this.settings[roomName], {upsert: true})
       .then(r => r);
 
+      this.kickBannedUsers(roomName);
+
       // distribute update to connected clients
       this.io.sockets.emit("settingsUpdate", this.settings);
     });
 
-    socket.on("requestRoom", roomName => {
-      console.log("requestRoom", roomName);
+    socket.on("requestRoom", request => {
+      let roomName = request.roomName;
+      console.log("requestRoom", request);
+
+      let username = socket.request.user.username;
+
       // dont allow rooms longer than 6 characters (not including slash)
       if (!roomName || roomName.length > 7) return;
       if (!this.rooms[roomName]) {
         this.createRoom(roomName);
+        if (username && request.private) {
+          this.settings[roomName].private = true;
+          this.settings[roomName].allow.push(username);
+        }
+      }
+
+      let settings = this.settings[roomName];
+
+      // (room owner and admins bypass restrictions)
+      if (settings.owner === username || settings.admins.includes(username)) {}
+      // private rooms with an allow-list
+      else if (settings.private && !settings.allow.includes(username)) {
+        socket.emit("clientError", "This room is private");
+        return;
+      } // rooms that restrict guests
+      else if (!settings.allowGuests && !username) {
+        socket.emit("clientError", "This room is for logged-in users only");
+        return;
+      } // rooms with banned users
+      else if (settings.exclude.includes(username)) {
+        socket.emit("clientError", "You are not permitted to access this room");
+        return;
+      }
+      // user is permitted to join
+      console.log("assigning player to room")
+      this.assignPlayerToRoom(socket.playerId, roomName);
+      // alert players in the room, and alert the joining player of those players as well
+      let socketsDict = this.io.sockets.sockets;
+      let sockets = Object.keys(socketsDict).map((i) => {
+        return socketsDict[i];
+      });
+
+      for (let rsocket of sockets) {
+        if (this.gameEngine.playerLocations[rsocket.playerId] == roomName) {
+          rsocket.emit("playerJoined", {username: username, playerId: socket.playerId});
+          socket.emit("playerJoined", {username: rsocket.request.user.username, playerId: rsocket.playerId});
+        }
       }
 
       // convert canvas to png byte buffer
@@ -90,10 +140,8 @@ export default class ExServerEngine extends ServerEngine {
       Models.TileMap.findOneAndReplace({roomName: roomName}, {roomName: roomName, data: buffer}, {upsert: true})
       .then(r => {console.log("saved!"); return r;});
 
-      console.log("assigning player to room")
-      this.assignPlayerToRoom(socket.playerId, roomName);
       console.log("emitting settingsupdate")
-      socket.emit("settingsUpdate", this.gameEngine.settings);
+      socket.emit("settingsUpdate", {[roomName]: settings});
 
       // send canvas state over to players as a png when they join a room
       socket.emit("canvasUpdate", {x: 0, y: 0, roomName: roomName, data: this.gameEngine.tileMaps[roomName]});
@@ -102,7 +150,7 @@ export default class ExServerEngine extends ServerEngine {
   }
 
   onPlayerDisconnected(socketId, playerId) {
-    super.onPlayerDisconnected(socketId, playerId)
+    let roomName = this.gameEngine.playerLocations[playerId];
     delete this.gameEngine.playerLocations[playerId];
 
     if (!this.gameEngine.world.queryObjects) return;
@@ -110,6 +158,51 @@ export default class ExServerEngine extends ServerEngine {
     playerObjects.forEach(obj => {
       this.gameEngine.removeObjectFromWorld(obj.id);
     });
+
+    let socketsDict = this.io.sockets.sockets;
+    let sockets = Object.keys(socketsDict).map((i) => {
+      return socketsDict[i];
+    });
+
+    for (let rsocket of sockets) {
+      if (this.gameEngine.playerLocations[rsocket.playerId] == roomName) {
+        rsocket.emit("playerLeft", {username: undefined, playerId: playerId});
+      }
+    }
+
+    super.onPlayerDisconnected(socketId, playerId)
+  }
+
+  // kick any users that shouldn't be in the room according to the settings
+  kickBannedUsers(roomName) {
+
+      let settings = this.settings[roomName]
+      let playerSockets = [];
+      for (let playerId in this.gameEngine.playerLocations) {
+        if (this.gameEngine.playerLocations[playerId] == roomName) {
+          let socket = this.socketFromPlayerId(playerId);
+          if (socket) {playerSockets.push(socket);}
+        }
+      }
+
+      for (let socket of playerSockets) {
+        let username = socket.request.user.username;
+        // (room owner and admins bypass restrictions)
+        if (settings.owner === username || settings.admins.includes(username)) {}
+        // private rooms with an allow-list
+        else if (settings.private && !settings.allow.includes(username)) {
+          socket.emit("clientError", "This room is now private or you have been removed from its members list");
+          continue;
+        } // rooms that restrict guests
+        else if (!settings.allowGuests && !username) {
+          socket.emit("clientError", "This room's admins have disabled access for unregistered users");
+          continue;
+        } // rooms with banned users
+        else if (settings.exclude.includes(username)) {
+          socket.emit("clientError", "You have been kicked from the room");
+          continue;
+        }
+      }
   }
 
   handleCanvasUpdate(update, playerId) {
@@ -118,8 +211,13 @@ export default class ExServerEngine extends ServerEngine {
       return socketsDict[i];
     });
     let playerSocket = this.socketFromPlayerId(playerId);
-
     let roomName = this.gameEngine.playerLocations[playerId] || update.roomName;
+    let settings = this.settings[roomName]; if (!settings) {return;}
+    let username = playerSocket && playerSocket.request.user.username;
+
+    if (playerId) {
+      if (settings.restrictDrawing && !settings.drawers.includes(username) && !settings.admins.includes(username) && settings.owner != username) return;
+    }
     // remove unneccesary data and add id
     let update2 = {x: update.x, y: update.y, size: update.size, fill: update.fill, data: update.data,
       id: playerId,
@@ -153,18 +251,35 @@ export default class ExServerEngine extends ServerEngine {
     if (this.settings) roomNames.push(...Object.keys(this.settings));
     for (let roomName of new Set(roomNames)) { // (Set removes duplicates)
       if (roomName == "/lobby") continue; // don't include the /lobby room it's just a byproduct of lance's functionality
-      let players = 0;
-      for (let playerId of Object.keys(this.gameEngine.playerLocations)) {
-        if (this.gameEngine.playerLocations[playerId] == roomName) players++;
-      }
-      arr.push({
-        name: roomName,
-        width: this.settings[roomName].worldWidth,
-        height: this.settings[roomName].worldHeight,
-        players: players,
-      });
+      if (this.settings[roomName].private) continue; // don't display private rooms
+
+      arr.push(this.summarizeRoom(roomName));
     }
     return arr;
+  }
+  summarizeRoom(roomName) {
+    if (!this.settings[roomName]) {return {};}
+    let players = 0;
+    let playerList = [];
+    for (let playerId of Object.keys(this.gameEngine.playerLocations)) {
+      if (this.gameEngine.playerLocations[playerId] == roomName) {
+        players++;
+        let socket = this.socketFromPlayerId(playerId);
+        let username = socket && socket.request.user.username;
+        playerList.push({
+          username: username,
+          playerId: playerId,
+        })
+      }
+    }
+    return {
+      name: roomName,
+      width: this.settings[roomName].worldWidth,
+      height: this.settings[roomName].worldHeight,
+      allowGuests: this.settings[roomName].allowGuests,
+      players: players,
+      playerList: playerList,
+    };
   }
 
   // generates a settings object with default settings
@@ -176,10 +291,15 @@ export default class ExServerEngine extends ServerEngine {
       bottomWall: false,
       leftWall: false,
       rightWall: false,
+      disableProjectiles: false,
+      restrictDrawing: false,
       drawers: [],
-      admins: [],
+      private: false,
       allow: [],
+      admins: [],
       exclude: [],
+      allowGuests: true,
+      owner: "",
     }
   }
 
@@ -225,7 +345,8 @@ export default class ExServerEngine extends ServerEngine {
           if (!retrievedTileMap.data[0]) return;
           let worldWidth = retrievedTileMap.data.length;
           let worldHeight = retrievedTileMap.data[0].length;
-          this.settings[retrievedTileMap.roomName] = {worldHeight, worldWidth};
+          let settings = this.settings[retrievedTileMap.roomName];
+          if (settings) {settings.worldHeight = worldHeight; settings.worldWidth = worldWidth;}
           this.gameEngine.tileMaps[retrievedTileMap.roomName] = new TileMap(worldWidth, worldHeight, {type: "array", data: retrievedTileMap.data});
         });
       }

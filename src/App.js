@@ -8,7 +8,7 @@ import Login from './components/Login';
 import Profile from './components/Profile';
 import NotFound from './components/NotFound';
 import { InputProvider } from './utils/InputStore';
-import { AuthProvider } from './utils/AuthContext';
+import { AuthProvider, AuthContext } from './utils/AuthContext';
 import './style.css';
 
 function App() {
@@ -21,7 +21,15 @@ function App() {
           <Route component={NavBar}/>
         </Switch>
         <Switch>
-          <Route exact={true} path="/game/:roomName(\b[0-9a-zA-Z]{1,6}\b)" component={GameCanvas}/>
+          <Route exact={true} path="/game/:roomName(\b[0-9a-zA-Z]{1,6}\b)" component={(props) => {
+            return (
+              <AuthContext.Consumer>
+                {context => {
+                  return <GameCanvas {...props} auth={context}/>;
+                }}
+              </AuthContext.Consumer>
+            );
+          }}/>
           <Route exact={true} path="/gallery" component={Gallery}/>
           <Route exact={true} path="/login" component={Login}/>
           <Route exact={true} path="/signup" render={props =>

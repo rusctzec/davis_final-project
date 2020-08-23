@@ -275,6 +275,9 @@ export default class ExGameEngine extends GameEngine {
   }
 
   makeProjectile(player, inputId, towardsPoint) {
+    let roomName = this.playerLocations[player.playerId];
+    if (this.settings[roomName] && this.settings[roomName].disableProjectiles) {return;}
+
     if (this.renderer) {
       this.renderer.sounds.fireBullet.play();
     }

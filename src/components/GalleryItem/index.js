@@ -29,6 +29,7 @@ const GalleryItem = props => {
         <div>{data.name}</div>
         <div>{width}x{height}px</div>
         <div>{data.players} players</div>
+        {data.allowGuests ? null : <div>No Guests</div>}
       </div>
     </div>
   );
