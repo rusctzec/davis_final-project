@@ -52,9 +52,10 @@ export default class ExServerEngine extends ServerEngine {
       let roomName = player.roomName
       let settings = this.settings[roomName];
 
-      if (!username || !(username == settings.owner || settings.admins.includes(username))) {return;}
+      if (!settings.unrestrictedSettings && (!username || !(username == settings.owner || settings.admins.includes(username)))) {return;}
       if (username != settings.owner) {
         delete newSettings.admins; // only owner can assign admins
+        delete newSettings.unrestrictedSettings // only owner can toggle unrestricted-settings mode
         if (settings.owner) {
           delete newSettings.owner; // owner can only be assigned by non-owners if there is no owner
         }
@@ -291,6 +292,7 @@ export default class ExServerEngine extends ServerEngine {
       bottomWall: false,
       leftWall: false,
       rightWall: false,
+      unrestrictedSettings: false,
       disableProjectiles: false,
       restrictDrawing: false,
       drawers: [],

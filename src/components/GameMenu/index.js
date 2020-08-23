@@ -17,6 +17,7 @@ export default class GameMenu extends React.Component {
         allowGuests: true,
         private: false,
         allow: "",
+        unrestrictedSettings: false,
         disableProjectiles: false,
         restrictDrawing: false,
         drawers: "",
@@ -60,7 +61,7 @@ export default class GameMenu extends React.Component {
 
     let username = this.props.auth.user.username;
     let isOwner = this.state.form.owner == username;
-    let isAdmin = isOwner || this.state.form.admins.includes(username);
+    let isAdmin = isOwner || this.state.form.unrestrictedSettings || this.state.form.admins.includes(username);
 
     let placeholderText = "user1, user2, user3, ..."
     return (
@@ -107,6 +108,9 @@ export default class GameMenu extends React.Component {
               <input placeholder={placeholderText} type="text" name="drawers" value={this.state.form.drawers} onChange={handleChange}/>
             </label></div> : null}
           </div>
+          <label>Anyone Can Edit Settings:
+            <input disabled={!isOwner} type="checkbox" name="unrestrictedSettings" checked={this.state.form.unrestrictedSettings} onChange={handleChange}/>
+          </label>
           { isOwner ? <label title="Users in this list can change the room's settings">Admins:<br/>
             <input placeholder={placeholderText} type="text" name="admins" value={this.state.form.admins} onChange={handleChange}/>
           </label> : null}

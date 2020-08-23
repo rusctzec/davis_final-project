@@ -8,6 +8,7 @@ const settingsSchema = new mongoose.Schema({
   bottomWall: Boolean,
   leftWall: Boolean,
   rightWall: Boolean,
+  unrestrictedSettings: Boolean,
   disableProjectiles: Boolean,
   restrictDrawing: Boolean,
   drawers: [String],
