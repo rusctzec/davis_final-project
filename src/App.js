@@ -21,7 +21,8 @@ function App() {
           <Route component={NavBar}/>
         </Switch>
         <Switch>
-          <Route exact={true} path="/game/:roomName(\b[0-9a-zA-Z]{1,6}\b)" component={(props) => {
+          <Route exact={true} path="/game/:roomName(\b[0-9a-zA-Z]{1,6}\b)" render={props => {
+            document.title = "Malleary | " + props.match.params.roomName;
             return (
               <AuthContext.Consumer>
                 {context => {
@@ -30,14 +31,30 @@ function App() {
               </AuthContext.Consumer>
             );
           }}/>
-          <Route exact={true} path="/gallery" component={Gallery}/>
-          <Route exact={true} path="/login" component={Login}/>
-          <Route exact={true} path="/signup" render={props =>
-            <Login signup={true}/>
-          }/>
-          <Route exact={true} path="/" component={Home}/>
-          <Route exact={true} path="/profile" component={Profile}/>
-          <Route component={NotFound}/>
+          <Route exact={true} path="/gallery" render={props => {
+            document.title = "Malleary | Gallery";
+            return <Gallery {...props} />
+          }}/>
+          <Route exact={true} path="/login" render={props => {
+            document.title = "Malleary | Login";
+            return <Login {...props} />
+          }}/>
+          <Route exact={true} path="/signup" render={props => {
+            document.title = "Malleary | Signup";
+            return <Login {...props} signup={true}/>;
+          }}/>
+          <Route exact={true} path="/" render={props => {
+            document.title = "Malleary";
+            return <Home {...props} />;
+          }}/>
+          <Route exact={true} path="/profile" render={props => {
+            document.title = "Malleary | Profile";
+            return <Profile {...props} />;
+          }}/>
+          <Route render={props => {
+            document.title = "Malleary | 404";
+            return <NotFound {...props} />;
+          }}/>
         </Switch>
       </InputProvider>
     </AuthProvider>
