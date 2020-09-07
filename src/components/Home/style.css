@@ -1,5 +1,23 @@
+.home {
+  display: flex;
+  flex-flow: column nowrap;
+  align-content: center;
+  align-items: center;
+  overflow: none;
+  margin: 0 auto;
+  height: 100%;
+  width: 70%;
+  background-color: var(--content-bg-color);
+}
+
+@media only screen and (max-width: 500px) {
+  .home {
+    width: 100%;
+  }
+}
+
 .titleBlock {
-  margin: 50px auto 200px;
+  margin: 50px auto 100px;
   overflow: visible;
   width: 250px;
   max-width: 90%;
@@ -45,6 +63,7 @@
     left: 0px;
   }
 }
+
 @keyframes header {
   0% {
     top: -100px;

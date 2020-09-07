@@ -49,20 +49,16 @@ button:disabled {
   filter: contrast(40%) brightness(130%);
 }
 
-main {
-  display: flex;
-  flex-flow: column nowrap;
-  align-content: center;
-  align-items: center;
-  overflow: auto;
-  margin: 0 auto;
-  height: 100%;
-  width: 70%;
-  background-color: var(--content-bg-color);
+button.shadow {
+  box-shadow: 5px 5px whitesmoke;
 }
 
-@media only screen and (max-width: 500px) {
-  main {
-    width: 100%;
-  }
+.borderShadow {
+  border: solid 1px lightgrey;
+  border-radius: 3%;
+  box-shadow: 10px 10px whitesmoke;
+}
+
+.shadow {
+  box-shadow: 10px 10px whitesmoke;
 }
