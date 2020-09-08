@@ -49,6 +49,7 @@ export default class ExClientEngine extends ClientEngine {
   connect(options) {
     return super.connect(options).then(() => {
       this.socket.on("canvasUpdate", update => {
+
         // preprocess png info
         if (update.type == "png") {
           new PNG({filterType: 4}).parse(update.data, (error, data) => {
@@ -76,11 +77,11 @@ export default class ExClientEngine extends ClientEngine {
         this.gameCanvas.setOverlayMessage("disconnected", "Disconnected");
       });
 
-      this.socket.on("playerJoined", p => {
+      this.socket.on("playerEnteredRoom", p => {
         this.gameCanvas.playerListUpdate("joined", p);
       });
 
-      this.socket.on("playerLeft", p => {
+      this.socket.on("playerExitedRoom", p => {
         this.gameCanvas.playerListUpdate("left", p);
       });
 

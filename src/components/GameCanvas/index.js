@@ -260,7 +260,7 @@ class GameCanvas extends React.Component {
 
   componentWillUnmount() {
     // lance doesn't provide the ability to destroy or restart the gameengine, so it's neccesary to perform a full page refresh to create a clean slate
-    console.log("gameCanvas WILL UNMOUNT");
+    clientEngine.disconnect();
     window.location.reload();
   }
 

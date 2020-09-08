@@ -121,7 +121,7 @@ export default class GameMenu extends React.Component {
           <p>Players:</p>
           <ul>
             {this.props.state.playerList.map(p => {
-              return (p.username ? <li key={p.playerId}>{p.username}</li> : <li key={p.playerId}>Player {p.playerId} <em>(Guest)</em></li>)
+              return (p.username ? <li key={p.playerId}>{p.username}</li> : <li key={p.playerId}>Guest {p.playerId}</li>)
             })}
           </ul>
         </form> :

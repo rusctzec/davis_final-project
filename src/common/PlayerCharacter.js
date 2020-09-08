@@ -80,7 +80,7 @@ export default class PlayerCharacter extends DynamicObject {
   draw() {
     if (this.colliding) {
       this.sprite.clear();
-      this.sprite.beginFill(0xff0000);
+      this.sprite.beginFill(0x0000ff);
       this.sprite.drawRect(0,0,10,10);
     } else {
       this.sprite.clear();

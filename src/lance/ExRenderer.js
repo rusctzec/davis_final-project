@@ -76,6 +76,7 @@ export default class ExRenderer extends Renderer {
   }
 
   handleStroke(update) {
+    console.log(update.name, update.id, this.gameEngine.playerId);
     if (update.id == this.gameEngine.playerId) return;
     if (!this.nameplates[update.id]) { // does not already exist
       this.nameplates[update.id] = new PIXI.Text(update.name, {fontFamily: 'serif', fontSize: 12, align: 'center'});

@@ -275,6 +275,7 @@ export default class ExGameEngine extends GameEngine {
   }
 
   makeProjectile(player, inputId, towardsPoint) {
+    console.log("makeProjectile");
     let roomName = this.playerLocations[player.playerId];
     if (this.settings[roomName] && this.settings[roomName].disableProjectiles) {return;}
 
@@ -289,6 +290,7 @@ export default class ExGameEngine extends GameEngine {
     cannonBall.velocity.x = player.velocity.x + newVelocity.x * 5;
     cannonBall.velocity.y = player.velocity.y + newVelocity.y * 3;
     cannonBall.playerId = player.playerId;
+    cannonBall.ownerId = player.id;
     cannonBall.inputId = inputId;
     this.addObjectToWorld(cannonBall);
     return cannonBall;

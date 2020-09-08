@@ -7,12 +7,12 @@ const qsOptions = querystring.parse(window.location.search);
 // is sent to both game engine and client engine
 const defaults = {
   // traceLevel: 1,
-  delayInputCount: 3,
+  delayInputCount: 5,
   scheduler: "render-schedule",
   syncOptions: {
     sync: qsOptions.sync || "extrapolate",
-    localObjBending: 0.0,
-    remoteObjBending: 0.8,
+    localObjBending: 0.8,
+    remoteObjBending: 1.0,
     bendingIncrements: 6
   }
 };

@@ -127,8 +127,8 @@ export default class ExServerEngine extends ServerEngine {
 
       for (let rsocket of sockets) {
         if (this.gameEngine.playerLocations[rsocket.playerId] == roomName) {
-          rsocket.emit("playerJoined", {username: username, playerId: socket.playerId});
-          socket.emit("playerJoined", {username: rsocket.request.user.username, playerId: rsocket.playerId});
+          rsocket.emit("playerEnteredRoom", {username: username, playerId: socket.playerId});
+          socket.emit("playerEnteredRoom", {username: rsocket.request.user.username, playerId: rsocket.playerId});
         }
       }
 
@@ -167,7 +167,7 @@ export default class ExServerEngine extends ServerEngine {
 
     for (let rsocket of sockets) {
       if (this.gameEngine.playerLocations[rsocket.playerId] == roomName) {
-        rsocket.emit("playerLeft", {username: undefined, playerId: playerId});
+        rsocket.emit("playerExitedRoom", {username: undefined, playerId: playerId});
       }
     }
 
