@@ -329,9 +329,8 @@ class GameCanvas extends React.Component {
     if (newValue === this.state.gameMode) return false;
     if (newValue) {this.canvasRef.current.scale = 7; clientEngine.socket.emit('requestCreation'); this.changeActive(TOOLS.cannon, true);
     clientEngine.controls.boundKeys = clientEngine.boundKeys
-
     }
-    else {this.resetView(); clientEngine.socket.emit('requestDeath'); if (this.state.active === TOOLS.cannon) this.changeActive(TOOLS.brush); clientEngine.controls.boundKeys = {}}
+    else {this.resetView(); clientEngine.socket.emit('requestDeath'); if (this.state.active === TOOLS.cannon) this.changeActive(TOOLS.panning, true); clientEngine.controls.boundKeys = {}}
     this.setState({...this.state, gameMode: newValue});
     return true;
   }
