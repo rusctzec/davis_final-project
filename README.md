@@ -1,7 +1,8 @@
 
 # Malleary
 
-A multiplayer drawing game. Built with React, Lance.gg, and MongoDB.
+A multiplayer drawing game.\
+Built with React, Lance.gg + Socket.io (WebSockets), and MongoDB.
 
 ## Table of Contents
 
