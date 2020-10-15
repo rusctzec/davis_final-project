@@ -4,6 +4,8 @@
 A multiplayer drawing game.\
 Built with React, Lance.gg + Socket.io (WebSockets), and MongoDB.
 
+[Visit deployed project here](malleary.herokuapp.com)
+
 ## Table of Contents
 
 * [Gameplay](#gameplay)
@@ -34,5 +36,3 @@ Run `npm run build` to build and `npm run start` to test your build. \
 ## Contact
 
 Contact information at [henrybi.shop](http://henrybi.shop)
-
-[Visit deployed project here](malleary.herokuapp.com)
